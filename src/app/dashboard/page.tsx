@@ -6,7 +6,7 @@ import { ProjectList } from "@/components/ProjectList"
 import { useRouter } from "next/navigation"
 
 export default function DashboardPage() {
-  const { user, signOut } = useAuth()
+  const { signOut } = useAuth()
   const router = useRouter()
 
   const handleLogout = async () => {

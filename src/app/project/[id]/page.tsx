@@ -49,7 +49,7 @@ export default function ProjectDetailPage() {
       } else {
         setProject(data)
       }
-    } catch (err: any) {
+    } catch {
       setError("Not authorized to view this project.")
       setProject(null)
     } finally {
@@ -76,8 +76,8 @@ export default function ProjectDetailPage() {
     try {
       const newIdeas = await generateIdeas(projectId, session.access_token)
       setIdeas((prev) => [...newIdeas, ...prev])
-    } catch (err: any) {
-      setGenerateError(err.message || "Failed to generate ideas")
+    } catch (err) {
+      setGenerateError(err instanceof Error ? err.message : "Failed to generate ideas")
     } finally {
       setGenerating(false)
     }

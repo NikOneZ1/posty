@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next"
 import { createClient } from "@supabase/supabase-js"
-import type { ChatCompletionCreateParamsBase, ChatCompletionMessageParam } from "openai/resources/chat/completions"
+import type {  ChatCompletionMessageParam } from "openai/resources/chat/completions"
 import { OpenAI } from "openai"
 import { v4 as uuidv4 } from "uuid"
 
