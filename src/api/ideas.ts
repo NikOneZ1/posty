@@ -12,6 +12,14 @@ export async function getIdeasForProject(project_id: string, user_id: string): P
   return data as Idea[]
 }
 
+export async function deleteIdea(idea_id: string, user_id: string): Promise<void> {
+  const { error } = await supabase
+    .from("ideas")
+    .delete()
+    .eq("id", idea_id)
+    .eq("user_id", user_id)
+}
+
 export async function generateIdeas(project_id: string, access_token: string): Promise<Idea[]> {
   const res = await fetch("/api/ideas/generate", {
     method: "POST",
@@ -24,4 +32,18 @@ export async function generateIdeas(project_id: string, access_token: string): P
   const data = await res.json()
   if (!res.ok) throw new Error(data.error || "Failed to generate ideas")
   return data.ideas as Idea[]
+}
+
+export async function createIdea(project_id: string, idea_text: string, access_token: string): Promise<Idea> {
+  const res = await fetch("/api/ideas/create", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${access_token}`,
+    },
+    body: JSON.stringify({ project_id, idea_text }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || "Failed to create idea")
+  return data.idea as Idea
 } 

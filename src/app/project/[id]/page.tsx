@@ -4,13 +4,14 @@ import { useEffect, useState } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { getProjectById } from "@/api/projects"
-import { getIdeasForProject, generateIdeas } from "@/api/ideas"
 import { Project } from "@/types/Project"
 import { Idea } from "@/types/Idea"
 import { Button } from "@/components/ui/Button"
 import { ProjectNavbar } from "@/components/projects/ProjectNavbar"
 import { ProjectHeader } from "@/components/projects/ProjectHeader"
 import { GeneratedIdeasList } from "@/components/projects/GeneratedIdeasList"
+import { IdeaInputForm } from "@/components/projects/IdeaInputForm"
+import { useIdeas } from "@/hooks/useIdeas"
 
 export default function ProjectDetailPage() {
   const { user, loading: authLoading, signOut, session } = useAuth()
@@ -21,10 +22,28 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [ideas, setIdeas] = useState<Idea[]>([])
-  const [ideasLoading, setIdeasLoading] = useState(true)
-  const [generating, setGenerating] = useState(false)
-  const [generateError, setGenerateError] = useState("")
+
+  const {
+    ideas,
+    loading: ideasLoading,
+    error: ideasError,
+    generating,
+    createError,
+    deleteError,
+    generateError,
+    fetchIdeas,
+    createIdea,
+    deleteIdea: deleteIdeaById,
+    generateIdeas,
+  } = useIdeas({
+    projectId: projectId!,
+    userId: user?.id!,
+    accessToken: session?.access_token!,
+  })
+
+  const handleDeleteIdea = (idea: Idea) => {
+    deleteIdeaById(idea.id)
+  }
 
   useEffect(() => {
     if (authLoading) return
@@ -57,32 +76,6 @@ export default function ProjectDetailPage() {
     }
   }
 
-  const fetchIdeas = async () => {
-    setIdeasLoading(true)
-    try {
-      const data = await getIdeasForProject(projectId!, user!.id)
-      setIdeas(data)
-    } catch {
-      setIdeas([])
-    } finally {
-      setIdeasLoading(false)
-    }
-  }
-
-  const handleGenerateIdeas = async () => {
-    if (!projectId || !session) return
-    setGenerating(true)
-    setGenerateError("")
-    try {
-      const newIdeas = await generateIdeas(projectId, session.access_token)
-      setIdeas((prev) => [...newIdeas, ...prev])
-    } catch (err) {
-      setGenerateError(err instanceof Error ? err.message : "Failed to generate ideas")
-    } finally {
-      setGenerating(false)
-    }
-  }
-
   return (
     <div className="min-h-screen bg-white">
       <ProjectNavbar
@@ -108,17 +101,33 @@ export default function ProjectDetailPage() {
             <ProjectHeader project={project} />
             {/* Main Action Area */}
             <div className="mb-12">
-              <Button onClick={handleGenerateIdeas} disabled={generating}>
+              <Button onClick={generateIdeas} disabled={generating}>
                 {generating ? "Generating..." : "Generate Ideas"}
               </Button>
               {generateError && (
                 <div className="mt-4 text-red-500 text-sm">{generateError}</div>
               )}
+              {deleteError && (
+                <div className="mt-4 text-red-500 text-sm">{deleteError}</div>
+              )}
+              {createError && (
+                <div className="mt-4 text-red-500 text-sm">{createError}</div>
+              )}
+              {ideasError && (
+                <div className="mt-4 text-red-500 text-sm">{ideasError}</div>
+              )}
             </div>
+            {/* Manual Idea Input */}
+            <IdeaInputForm onSubmit={createIdea} disabled={generating} />
+            {/* Ideas List */}
             {ideasLoading ? (
               <div className="mb-12 text-gray-400">Loading ideas...</div>
             ) : (
-              <GeneratedIdeasList ideas={ideas} />
+              <GeneratedIdeasList 
+                ideas={ideas} 
+                onDelete={handleDeleteIdea} 
+                projectId={projectId!}
+              />
             )}
             {/* Tab Navigation Placeholder */}
             <div className="border-b border-gray-100 h-12 flex items-end mb-2">
