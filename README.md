@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Posty
 
-## Getting Started
+A modern, full-stack content ideation and generation platform for creators and teams. Easily manage content ideas, generate AI-powered content (e.g., Twitter threads), and save drafts for later editing and publishing.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Features
+
+- **Project & Idea Management**: Organize your content ideas by project.
+- **AI Content Generation**: Expand ideas into full content (Twitter threads, more coming soon) using OpenAI GPT-4.
+- **Drafts**: Auto-save and auto-load drafts for each idea, so you never lose your work.
+- **Authentication**: Secure, user-based access with Supabase Auth.
+- **Modern UI**: Built with React, Next.js App Router, and Tailwind CSS.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend**: React 19, Next.js 15 (App Router), TypeScript
+- **Backend/API**: Next.js API routes (Edge/serverless), OpenAI API
+- **Database**: Supabase (Postgres)
+- **Auth**: Supabase Auth (JWT-based)
+- **Styling**: Tailwind CSS, Radix UI, Lucide Icons
+- **State/UX**: React hooks, Toast notifications (sonner)
+
+---
+
+## 📁 Project Structure
+
+```
+src/
+  app/                # Next.js App Router pages & API routes
+    project/[id]/idea/[idea_id]/page.tsx   # Idea details, content generation, draft auto-save
+    api/
+      content/generate/route.ts            # AI content generation endpoint
+      drafts/
+        save/route.ts                      # Save or update a draft
+        get/route.ts                       # Fetch a draft for an idea
+  components/          # UI components (Button, Card, Select, etc.)
+  services/            # Client-side API service functions (drafts, ideas, etc.)
+  types/               # TypeScript types (Idea, Draft, etc.)
+  lib/                 # Utilities (Supabase client, validation, etc.)
+public/                # Static assets
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🧑‍💻 Local Development
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 1. **Clone the repo**
+```sh
+git clone https://github.com/yourusername/posty.git
+cd posty
+```
 
-## Learn More
+### 2. **Install dependencies**
+```sh
+npm install
+```
 
-To learn more about Next.js, take a look at the following resources:
+### 3. **Configure environment variables**
+Create a `.env.local` file with:
+```
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+OPENAI_API_KEY=your-openai-api-key
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 4. **Run the development server**
+```sh
+npm run dev
+```
+Visit [http://localhost:3000](http://localhost:3000)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🗄️ Database Setup (Supabase)
+- Create a new project at [supabase.com](https://supabase.com/)
+- Run the migrations in `supabase/migrations/` to set up tables and RLS policies
+- Configure Auth (email/password or social)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🚢 Deployment
+- Deploy to [Vercel](https://vercel.com/) (recommended) or any platform supporting Next.js 15+
+- Set the same environment variables in your deployment dashboard
+- Ensure your Supabase project allows connections from your deployed domain
+
+---
+
+## 📝 Notable Technologies
+- **Next.js App Router**: Modern file-based routing and server components
+- **Supabase**: Postgres DB, Auth, and instant REST API
+- **OpenAI**: GPT-4 for content generation
+- **Tailwind CSS**: Utility-first styling
+- **Radix UI**: Accessible, composable UI primitives
+- **Lucide Icons**: Beautiful icon set
+- **Sonner**: Toast notifications
+
+---
+
+## 🤝 Contributing
+Pull requests and issues are welcome! Please open an issue to discuss your idea or bug before submitting a PR.
+
+---
+
+## 📄 License
+MIT
