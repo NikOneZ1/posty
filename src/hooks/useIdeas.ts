@@ -49,7 +49,7 @@ export function useIdeas({ projectId, userId, accessToken }: UseIdeasOptions): U
   const createIdea = useCallback(async (ideaText: string) => {
     setCreateError(null)
     try {
-      const newIdea = await IdeasService.create({
+      const { idea: newIdea} = await IdeasService.create({
         projectId,
         ideaText,
         accessToken,

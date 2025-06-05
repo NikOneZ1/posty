@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button"
 import { ProjectGrid } from "@/components/projects/ProjectGrid"
 import { ProjectEmptyState } from "@/components/projects/ProjectEmptyState"
 import { ProjectCreateModal } from "@/components/projects/ProjectCreateModal"
+import notyf from "@/lib/notyf"
 
 export function ProjectList() {
   const { user } = useAuth()
@@ -27,27 +28,25 @@ export function ProjectList() {
 
   const fetchAll = async () => {
     setLoading(true)
-    setError("")
     try {
       const data = await getProjects(user!.id)
       setProjects(data)
     } catch {
-      setError("Failed to load projects, try again.")
+      notyf?.error("Failed to load projects, try again.")
     } finally {
       setLoading(false)
     }
   }
 
-  const handleCreate = async (form: { name: string; niche: string; description: string; tone: string }) => {
+  const handleCreate = async (form: { name: string; niche: string; description: string; tone: string; platform: 'twitter' | 'linkedin' | 'telegram' }) => {
     if (!user) return
     setCreating(true)
-    setError("")
     try {
       const project = await createProject(user.id, form)
       setProjects((prev) => [project, ...prev])
       setShowModal(false)
     } catch {
-      setError("Failed to create project, try again.")
+      notyf?.error("Failed to create project, try again.")
       throw new Error()
     } finally {
       setCreating(false)
@@ -68,8 +67,6 @@ export function ProjectList() {
       {/* Loading/Error/Empty/Grid */}
       {loading ? (
         <div className="flex justify-center py-20 text-gray-400 text-lg">Loading...</div>
-      ) : error ? (
-        <div className="flex justify-center py-20 text-red-400 text-lg">{error}</div>
       ) : projects.length === 0 ? (
         <ProjectEmptyState />
       ) : (

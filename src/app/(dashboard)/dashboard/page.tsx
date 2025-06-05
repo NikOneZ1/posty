@@ -16,18 +16,7 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-white">
-        {/* Navbar */}
-        <nav className="flex items-center justify-between px-6 h-14 border-b border-gray-100">
-          <span className="font-bold text-lg tracking-tight">Posty</span>
-          <button
-            onClick={handleLogout}
-            className="text-gray-500 text-sm px-3 py-1 rounded hover:text-gray-900 transition-colors"
-          >
-            Logout
-          </button>
-        </nav>
-        {/* Main Content */}
+      <div className="min-h-screen">
         <main className="max-w-5xl mx-auto px-4 py-10">
           <ProjectList />
         </main>

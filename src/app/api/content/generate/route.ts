@@ -1,11 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
-import { OpenAI } from 'openai';
-import { Idea } from '@/types/Idea';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { generateDraftFromIdea } from '@/lib/ai/generateDraft';
 
 // Helper to extract access token from Authorization header
 function getAccessToken(request: Request): string | null {
@@ -28,37 +23,16 @@ export async function POST(request: Request) {
     }
 
     // 2. Parse request body
-    const { idea_text, format } = await request.json();
-    if (!idea_text || !format) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
+    const { idea_text } = await request.json();
 
     // 3. Get project tone if available
     const { data: project } = await supabase
       .from('projects')
-      .select('tone')
+      .select('*')
       .eq('user_id', user.id)
       .single();
-    const tone = project?.tone || 'friendly and actionable';
 
-    // 4. Build GPT prompt
-    let prompt = '';
-    if (format === 'twitter-thread') {
-      prompt = `You are a content creator specializing in high-performing Twitter threads.\n\nWrite a Twitter thread based on this idea:\n"${idea_text}"\n\nThe tone is ${tone}.\n\nFormat:\n- Hook\n- 3–5 short bullet points\n- 1 final CTA (call to engage)\n\nReturn the output as plain text.`;
-    } else {
-      return NextResponse.json({ error: 'Unsupported format' }, { status: 400 });
-    }
-
-    // 5. Call OpenAI
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: 'gpt-4-turbo-preview',
-      temperature: 0.7,
-    });
-    const content = completion.choices[0]?.message?.content || '';
+    const content = await generateDraftFromIdea(idea_text, project);
 
     // 6. Return result
     return NextResponse.json({ content });

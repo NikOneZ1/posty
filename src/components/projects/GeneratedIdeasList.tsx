@@ -23,7 +23,7 @@ export function GeneratedIdeasList({ ideas, onDelete, projectId }: Props) {
       <ul className="space-y-3">
         {ideas.map((idea) => (
           <li 
-            key={idea.id} 
+            key={`${idea.id}-${idea.idea_text}`}
             className="bg-gray-50 border border-gray-100 rounded p-4 text-gray-800 flex items-center justify-between hover:bg-gray-100 transition-colors cursor-pointer"
             onClick={() => handleIdeaClick(idea)}
           >
