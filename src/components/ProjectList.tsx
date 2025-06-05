@@ -16,7 +16,6 @@ export function ProjectList() {
   const router = useRouter()
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
   const [showModal, setShowModal] = useState(false)
   const [creating, setCreating] = useState(false)
 

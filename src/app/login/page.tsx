@@ -11,7 +11,6 @@ export default function LoginPage() {
   const { session } = useAuth()
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState("")
 
   useEffect(() => {
     if (session) {
@@ -38,6 +37,7 @@ export default function LoginPage() {
         notyf?.success("Check your email for the magic link!")
       }
     } catch (err) {
+      console.error('Error signing in:', err);
       notyf?.error("An unexpected error occurred. Please try again.")
     } finally {
       setLoading(false)

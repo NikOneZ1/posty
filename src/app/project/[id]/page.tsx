@@ -8,7 +8,6 @@ import { Project } from "@/types/Project"
 import { Idea } from "@/types/Idea"
 import { Button } from "@/components/ui/Button"
 import { ProjectNavbar } from "@/components/projects/ProjectNavbar"
-import { ProjectHeader } from "@/components/projects/ProjectHeader"
 import { GeneratedIdeasList } from "@/components/projects/GeneratedIdeasList"
 import { IdeaInputForm } from "@/components/projects/IdeaInputForm"
 import { useIdeas } from "@/hooks/useIdeas"
@@ -42,10 +41,22 @@ export default function ProjectDetailPage() {
     createIdea,
     deleteIdea: deleteIdeaById,
     generateIdeas,
-  } = useIdeas({
-    projectId: projectId!,
-    userId: user?.id!,
-    accessToken: session?.access_token!,
+  } = !projectId || !user?.id || !session?.access_token ? {
+    ideas: [],
+    loading: false,
+    error: null,
+    generating: false,
+    createError: null,
+    deleteError: null,
+    generateError: null,
+    fetchIdeas: async () => {},
+    createIdea: async () => {},
+    deleteIdea: async () => {},
+    generateIdeas: async () => {},
+  } : useIdeas({
+    projectId,
+    userId: user.id,
+    accessToken: session.access_token,
   })
 
   const handleDeleteIdea = (idea: Idea) => {

@@ -13,7 +13,7 @@ export async function getIdeasForProject(project_id: string, user_id: string): P
 }
 
 export async function deleteIdea(idea_id: string, user_id: string): Promise<void> {
-  const { error } = await supabase
+  await supabase
     .from("ideas")
     .delete()
     .eq("id", idea_id)

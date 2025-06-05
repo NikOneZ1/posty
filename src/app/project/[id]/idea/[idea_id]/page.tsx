@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
@@ -63,6 +62,7 @@ export default function IdeaContentPage() {
         const draft = await getDraft(data.id, session.access_token);
         if (draft?.content) setGeneratedContent(draft.content);
       } catch (error) {
+        console.error('Error fetching idea:', error);
         toast.error('Failed to load idea');
       } finally {
         setIsLoading(false);
@@ -107,8 +107,9 @@ export default function IdeaContentPage() {
       // Auto-save draft after generation
       await saveDraft(idea.id, data.content, accessToken);
       toast.success('✅ Draft updated!');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to generate content. Please try again.');
+    } catch (error) {
+      console.error('Error generating content:', error);
+      toast.error('Failed to generate content. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -143,8 +144,9 @@ export default function IdeaContentPage() {
       }
 
       toast.success('✅ Draft saved successfully!');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to save content. Please try again.');
+    } catch (error) {
+      console.error('Error saving content:', error);
+      toast.error('Failed to save content. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -181,8 +183,9 @@ export default function IdeaContentPage() {
       setIdea({ ...idea, idea_text: editedText });
       setIsEditing(false);
       toast.success('✅ Idea updated successfully!');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update idea. Please try again.');
+    } catch (error) {
+      console.error('Error updating idea:', error);
+      toast.error('Failed to update idea. Please try again.');
     } finally {
       setIsUpdating(false);
     }
