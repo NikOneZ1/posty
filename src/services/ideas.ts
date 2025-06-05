@@ -31,8 +31,8 @@ export class IdeasService {
     return data as Idea[]
   }
 
-  static async create({ projectId, ideaText, accessToken }: CreateIdeaParams): Promise<Idea> {
-    return fetchApi<Idea>("/api/ideas/create", {
+  static async create({ projectId, ideaText, accessToken }: CreateIdeaParams): Promise<{ idea: Idea }> {
+    return fetchApi<{ idea: Idea }>("/api/ideas/create", {
       method: "POST",
       body: { project_id: projectId, idea_text: ideaText },
       accessToken,

@@ -39,15 +39,7 @@ export async function POST(request: Request) {
     }
     const project_id = idea.project_id;
 
-    // 4. Get project platform (if needed for future use)
-    const { data: project } = await supabase
-      .from('projects')
-      .select('platform')
-      .eq('id', project_id)
-      .single();
-    // platform is available as project?.platform
-
-    // 5. Upsert draft (update if exists, insert if not)
+    // 4. Upsert draft (update if exists, insert if not)
     const { data: existingDraft } = await supabase
       .from('drafts')
       .select('id')

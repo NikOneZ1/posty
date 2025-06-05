@@ -32,4 +32,20 @@ export async function getProjectById(id: string, userId: string): Promise<Projec
     throw error
   }
   return data || null
+}
+
+export async function updateProject(
+  id: string,
+  userId: string,
+  form: Partial<Omit<Project, "id" | "created_at" | "user_id">>
+): Promise<Project> {
+  const { data, error } = await supabase
+    .from("projects")
+    .update(form)
+    .eq("id", id)
+    .eq("user_id", userId)
+    .select()
+    .single()
+  if (error) throw error
+  return data
 } 

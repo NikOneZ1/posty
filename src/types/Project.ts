@@ -4,6 +4,7 @@ export interface Project {
   niche: string | null
   description: string | null
   tone: string | null
+  platform: 'twitter' | 'linkedin' | 'telegram'
   created_at: string
   user_id: string
 } 

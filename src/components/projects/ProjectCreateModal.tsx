@@ -1,16 +1,33 @@
 import React, { useState } from "react"
 import { Modal } from "@/components/ui/Modal"
 import { Button } from "@/components/ui/Button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/Select"
+
+type Platform = 'twitter' | 'linkedin' | 'telegram'
+
+interface ProjectForm {
+  name: string
+  niche: string
+  description: string
+  tone: string
+  platform: Platform
+}
 
 interface ProjectCreateModalProps {
   open: boolean
   onClose: () => void
-  onCreate: (form: { name: string; niche: string; description: string; tone: string }) => Promise<void>
+  onCreate: (form: ProjectForm) => Promise<void>
   creating: boolean
 }
 
 export function ProjectCreateModal({ open, onClose, onCreate, creating }: ProjectCreateModalProps) {
-  const [form, setForm] = useState({ name: "", niche: "", description: "", tone: "" })
+  const [form, setForm] = useState<ProjectForm>({ 
+    name: "", 
+    niche: "", 
+    description: "", 
+    tone: "",
+    platform: 'twitter'
+  })
   const [error, setError] = useState("")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -26,7 +43,7 @@ export function ProjectCreateModal({ open, onClose, onCreate, creating }: Projec
     }
     try {
       await onCreate(form)
-      setForm({ name: "", niche: "", description: "", tone: "" })
+      setForm({ name: "", niche: "", description: "", tone: "", platform: 'twitter' })
     } catch {
       setError("Failed to create project, try again.")
     }
@@ -45,6 +62,24 @@ export function ProjectCreateModal({ open, onClose, onCreate, creating }: Projec
           onChange={handleChange}
           autoFocus
         />
+        <div>
+          <label className="block text-sm font-medium mb-2">Platform:</label>
+          <Select 
+            value={form.platform} 
+            onValueChange={(value: Platform) => 
+              setForm(prev => ({ ...prev, platform: value }))
+            }
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select platform" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="twitter">Twitter</SelectItem>
+              <SelectItem value="linkedin">LinkedIn</SelectItem>
+              <SelectItem value="telegram">Telegram</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <input
           name="niche"
           type="text"

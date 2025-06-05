@@ -11,7 +11,7 @@ export async function fetchApi<T>(
   endpoint: string,
   options: {
     method?: string
-    body?: any
+    body?: object
     accessToken?: string
   } = {}
 ): Promise<T> {

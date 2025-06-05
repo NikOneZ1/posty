@@ -1,17 +1,16 @@
-// src/app/login/page.tsx
 "use client"
 
 import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabaseClient"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
+import notyf from "@/lib/notyf"
 
 export default function LoginPage() {
   const router = useRouter()
   const { session } = useAuth()
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState("")
 
   useEffect(() => {
     if (session) {
@@ -23,39 +22,53 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-    })
+    try {
+      console.log('Attempting to sign in with OTP...');
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        }
+      })
 
-    if (error) {
-      setMessage(error.message)
-    } else {
-      setMessage("Check your email for the magic link!")
+      if (error) {
+        notyf?.error(error.message)
+      } else {
+        notyf?.success("Check your email for the magic link!")
+      }
+    } catch (err) {
+      console.error('Error signing in:', err);
+      notyf?.error("An unexpected error occurred. Please try again.")
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6">
-      <form onSubmit={handleLogin} className="flex flex-col gap-4 w-full max-w-sm">
-        <input
-          type="email"
-          required
-          placeholder="Your email"
-          className="border p-3 rounded"
+    <div className="flex justify-center items-center h-screen">
+      <form onSubmit={handleLogin} className="card md pt-15 pb-15 pl-5 pr-5 gap-5 flex flex-col items-center justify-center">
+        <div className="flex flex-row items-center justify-center gap-2">
+          <span className="icon-[solar--lock-bold] size-10 text-primary"></span>
+          <h1 className="text-base-content text-3xl font-semibold">Sign in to Posty</h1>
+        </div>
+        <p className="text-base-content/60">Enter your email to continue</p>
+        <input 
+          required 
+          type="email" 
+          placeholder="Your email" 
+          className="input max-w-sm" 
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-black text-white rounded p-3"
+        <button 
+          type="submit" 
+          disabled={loading} 
+          className="btn btn-primary w-full"
         >
           {loading ? "Sending..." : "Send Magic Link"}
         </button>
+        <p className="text-base-content/60">No account? It will be created automatically</p>
       </form>
-      {message && <p className="mt-4 text-center">{message}</p>}
     </div>
   )
 }
