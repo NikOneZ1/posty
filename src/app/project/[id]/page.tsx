@@ -41,22 +41,11 @@ export default function ProjectDetailPage() {
     createIdea,
     deleteIdea: deleteIdeaById,
     generateIdeas,
-  } = !projectId || !user?.id || !session?.access_token ? {
-    ideas: [],
-    loading: false,
-    error: null,
-    generating: false,
-    createError: null,
-    deleteError: null,
-    generateError: null,
-    fetchIdeas: async () => {},
-    createIdea: async () => {},
-    deleteIdea: async () => {},
-    generateIdeas: async () => {},
-  } : useIdeas({
-    projectId,
-    userId: user.id,
-    accessToken: session.access_token,
+  } = useIdeas({
+    projectId: projectId ?? "",
+    userId: user?.id ?? "",
+    accessToken: session?.access_token ?? "",
+    enabled: Boolean(projectId && user?.id && session?.access_token)
   })
 
   const handleDeleteIdea = (idea: Idea) => {
@@ -123,11 +112,6 @@ export default function ProjectDetailPage() {
   }
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setEditForm(prev => ({ ...prev, [name]: value }))
-  }
-
-  const handleSelectChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target
     setEditForm(prev => ({ ...prev, [name]: value }))
   }

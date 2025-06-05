@@ -7,6 +7,7 @@ interface UseIdeasOptions {
   projectId: string
   userId: string
   accessToken: string
+  enabled?: boolean
 }
 
 interface UseIdeasReturn {
@@ -23,7 +24,7 @@ interface UseIdeasReturn {
   generateIdeas: () => Promise<void>
 }
 
-export function useIdeas({ projectId, userId, accessToken }: UseIdeasOptions): UseIdeasReturn {
+export function useIdeas({ projectId, userId, accessToken, enabled = true }: UseIdeasOptions): UseIdeasReturn {
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -33,6 +34,7 @@ export function useIdeas({ projectId, userId, accessToken }: UseIdeasOptions): U
   const [generateError, setGenerateError] = useState<string | null>(null)
 
   const fetchIdeas = useCallback(async () => {
+    if (!enabled) return
     setLoading(true)
     setError(null)
     try {
@@ -44,9 +46,10 @@ export function useIdeas({ projectId, userId, accessToken }: UseIdeasOptions): U
     } finally {
       setLoading(false)
     }
-  }, [projectId, userId])
+  }, [projectId, userId, enabled])
 
   const createIdea = useCallback(async (ideaText: string) => {
+    if (!enabled) return
     setCreateError(null)
     try {
       const { idea: newIdea} = await IdeasService.create({
@@ -60,9 +63,10 @@ export function useIdeas({ projectId, userId, accessToken }: UseIdeasOptions): U
       setCreateError(message)
       throw err
     }
-  }, [projectId, accessToken])
+  }, [projectId, accessToken, enabled])
 
   const deleteIdea = useCallback(async (ideaId: string) => {
+    if (!enabled) return
     setDeleteError(null)
     try {
       await IdeasService.delete({ ideaId, userId })
@@ -70,9 +74,10 @@ export function useIdeas({ projectId, userId, accessToken }: UseIdeasOptions): U
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : "Failed to delete idea")
     }
-  }, [userId])
+  }, [userId, enabled])
 
   const generateIdeas = useCallback(async () => {
+    if (!enabled) return
     setGenerating(true)
     setGenerateError(null)
     try {
@@ -83,7 +88,7 @@ export function useIdeas({ projectId, userId, accessToken }: UseIdeasOptions): U
     } finally {
       setGenerating(false)
     }
-  }, [projectId, accessToken])
+  }, [projectId, accessToken, enabled])
 
   return {
     ideas,
