@@ -59,6 +59,8 @@ export default function LoginPage() {
           className="input max-w-sm" 
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
+          name="email"
         />
         <button 
           type="submit" 
