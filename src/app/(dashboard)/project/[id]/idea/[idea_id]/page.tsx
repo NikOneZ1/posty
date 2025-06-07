@@ -92,6 +92,7 @@ export default function IdeaContentPage() {
         },
         body: JSON.stringify({
           idea_text: idea.idea_text,
+          project_id: params?.id,
           regenerate: !!generatedContent,
           platform: project?.platform || 'twitter',
         }),
