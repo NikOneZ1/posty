@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @plugin "flyonui"{
-    themes: valorant --default, black --prefersdark, gourmet;
+    themes: light --default, black --prefersdark, gourmet;
 }
 @import "flyonui/variants.css";
 @source "../../node_modules/flyonui/flyonui.js";

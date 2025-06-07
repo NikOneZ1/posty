@@ -57,15 +57,20 @@ export function ProjectList() {
   }
 
   return (
-    <div>
-      {/* Title + Action Row */}
+    <div className="container mx-auto p-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
-        <h1 className="text-3xl font-bold text-gray-900">Your Projects</h1>
-        <Button onClick={() => setShowModal(true)}>New Project</Button>
+        <h1 className="text-3xl font-bold text-base-content">Your Projects</h1>
+        <button 
+          onClick={() => setShowModal(true)} 
+          className="btn btn-primary"
+        >
+          New Project
+        </button>
       </div>
-      {/* Loading/Error/Empty/Grid */}
       {loading ? (
-        <div className="flex justify-center py-20 text-gray-400 text-lg">Loading...</div>
+        <div className="flex justify-center py-20 text-base-content/60 text-lg">
+          <div className="loading loading-spinner loading-lg"></div>
+        </div>
       ) : projects.length === 0 ? (
         <ProjectEmptyState />
       ) : (

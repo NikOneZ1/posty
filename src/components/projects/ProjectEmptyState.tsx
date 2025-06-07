@@ -1,10 +1,9 @@
 import React from "react"
-import { FolderIcon } from "@/components/icons/FolderIcon"
 
 export function ProjectEmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-24 text-gray-400">
-      <FolderIcon />
+    <div className="flex flex-col items-center justify-center py-24 text-base-content/60">
+      <span className="icon-[solar--folder-bold] size-16 text-base-content/40"></span>
       <div className="mt-4 text-lg font-medium">No Projects yet. Create your first project!</div>
     </div>
   )
