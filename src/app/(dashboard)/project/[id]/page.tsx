@@ -6,14 +6,10 @@ import { useAuth } from "@/contexts/AuthContext"
 import { getProjectById, updateProject } from "@/api/projects"
 import { Project } from "@/types/Project"
 import { Idea } from "@/types/Idea"
-import { Button } from "@/components/ui/Button"
 import { GeneratedIdeasList } from "@/components/projects/GeneratedIdeasList"
 import { IdeaInputForm } from "@/components/projects/IdeaInputForm"
 import { useIdeas } from "@/hooks/useIdeas"
 import { toast } from "sonner"
-import { Dialog } from "@/components/ui/Dialog"
-import { Input } from "@/components/ui/Input"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 
 export default function ProjectDetailPage() {
   const { user, loading: authLoading, session } = useAuth()
@@ -144,168 +140,144 @@ export default function ProjectDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <main className="max-w-2xl mx-auto px-4 py-10">
+    <div className="min-h-screen">
+      <main className="container mx-auto max-w-3xl p-4 py-10">
         {loading ? (
-          <div className="flex justify-center py-24 text-gray-400 text-lg">Loading project...</div>
+          <div className="flex justify-center py-20 text-base-content/60">
+            <div className="loading loading-spinner loading-lg" />
+          </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center py-24 text-red-400 text-lg">
-            <span className="text-2xl mb-4">❗</span>
+          <div className="flex flex-col items-center justify-center py-24 text-error">
+            <span className="icon-[tabler--alert-circle] mb-4 size-8" />
             {error}
             <button
-              onClick={() => router.push("/dashboard")}
-              className="mt-6 text-sm text-gray-500 underline hover:text-black"
+              onClick={() => router.push('/dashboard')}
+              className="mt-6 link"
             >
               Go back to dashboard
             </button>
           </div>
         ) : project ? (
           <>
-            <div className="mb-8">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-                  <p className="mt-2 text-gray-600">{project.description}</p>
+            <div className="card bg-base-100 shadow-sm mb-8">
+              <div className="card-body">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
+                  <div className="space-y-1">
+                    <h1 className="text-3xl font-bold text-base-content">{project.name}</h1>
+                    <p className="text-base-content/60">{project.description}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={openEditModal} className="btn btn-neutral btn-sm sm:btn-md">Edit</button>
+                    <button onClick={handleDeleteProject} className="btn btn-error btn-sm sm:btn-md">Delete</button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button onClick={openEditModal}>
-                    Edit Project
-                  </Button>
-                  <Button 
-                    onClick={handleDeleteProject}
-                    className="bg-red-600 hover:bg-red-700"
-                  >
-                    Delete Project
-                  </Button>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-500">Niche:</span>
-                  <span className="ml-2 text-gray-900">{project.niche || "Not set"}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500">Platform:</span>
-                  <span className="ml-2 text-gray-900 capitalize">{project.platform}</span>
-                </div>
-                <div>
-                  <span className="text-gray-500">Tone:</span>
-                  <span className="ml-2 text-gray-900">{project.tone || "Not set"}</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                  <div><span className="font-medium">Niche:</span> {project.niche || 'Not set'}</div>
+                  <div><span className="font-medium">Platform:</span> <span className="capitalize">{project.platform}</span></div>
+                  <div><span className="font-medium">Tone:</span> {project.tone || 'Not set'}</div>
                 </div>
               </div>
             </div>
 
-            {/* Main Action Area */}
-            <div className="mb-12">
-              <Button onClick={generateIdeas} disabled={generating}>
-                {generating ? "Generating..." : "Generate Ideas"}
-              </Button>
-              {generateError && (
-                <div className="mt-4 text-red-500 text-sm">{generateError}</div>
-              )}
-              {deleteError && (
-                <div className="mt-4 text-red-500 text-sm">{deleteError}</div>
-              )}
-              {createError && (
-                <div className="mt-4 text-red-500 text-sm">{createError}</div>
-              )}
-              {ideasError && (
-                <div className="mt-4 text-red-500 text-sm">{ideasError}</div>
-              )}
+            <div className="mb-8 flex justify-end">
+              <button onClick={generateIdeas} disabled={generating} className="btn btn-primary">
+                {generating ? 'Generating...' : 'Generate Ideas'}
+              </button>
             </div>
+            {(generateError || deleteError || createError || ideasError) && (
+              <div className="space-y-1 text-error text-sm mb-6">
+                {generateError && <div>{generateError}</div>}
+                {deleteError && <div>{deleteError}</div>}
+                {createError && <div>{createError}</div>}
+                {ideasError && <div>{ideasError}</div>}
+              </div>
+            )}
 
-            {/* Manual Idea Input */}
             <IdeaInputForm onSubmit={createIdea} disabled={generating} />
 
-            {/* Ideas List */}
             {ideasLoading ? (
-              <div className="mb-12 text-gray-400">Loading ideas...</div>
+              <div className="flex justify-center py-10 text-base-content/60">
+                <div className="loading loading-spinner" />
+              </div>
             ) : (
-              <GeneratedIdeasList 
-                ideas={ideas} 
-                onDelete={handleDeleteIdea} 
-                projectId={projectId!}
-              />
+              <GeneratedIdeasList ideas={ideas} onDelete={handleDeleteIdea} projectId={projectId!} />
             )}
           </>
         ) : null}
       </main>
 
-      {/* Edit Project Modal */}
-      <Dialog
-        open={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        title="Edit Project"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
-            <Input
-              name="name"
-              value={editForm.name || ""}
-              onChange={handleInputChange}
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
-            <Input
-              name="description"
-              value={editForm.description || ""}
-              onChange={handleInputChange}
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Niche</label>
-            <Input
-              name="niche"
-              value={editForm.niche || ""}
-              onChange={handleInputChange}
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Platform</label>
-            <Select
-              value={editForm.platform || ""}
-              onValueChange={(value) => setEditForm(prev => ({ ...prev, platform: value as Project["platform"] }))}
-            >
-              <SelectTrigger className="mt-1">
-                <SelectValue placeholder="Select platform" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="twitter">Twitter</SelectItem>
-                <SelectItem value="linkedin">LinkedIn</SelectItem>
-                <SelectItem value="telegram">Telegram</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Tone</label>
-            <Input
-              name="tone"
-              value={editForm.tone || ""}
-              onChange={handleInputChange}
-              className="mt-1"
-            />
-          </div>
-          <div className="flex justify-end space-x-3 mt-6">
-            <Button
-              onClick={() => setIsEditModalOpen(false)}
-              disabled={isUpdating}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleEditSubmit}
-              disabled={isUpdating}
-            >
-              {isUpdating ? "Saving..." : "Save Changes"}
-            </Button>
+      {isEditModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setIsEditModalOpen(false)} />
+          <div className="relative w-full max-w-md card bg-base-100 p-6 shadow-lg">
+            <h3 className="text-lg font-semibold mb-4">Edit Project</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="label-text" htmlFor="edit-name">Name</label>
+                <input
+                  id="edit-name"
+                  name="name"
+                  className="input w-full"
+                  value={editForm.name || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div>
+                <label className="label-text" htmlFor="edit-description">Description</label>
+                <input
+                  id="edit-description"
+                  name="description"
+                  className="input w-full"
+                  value={editForm.description || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div>
+                <label className="label-text" htmlFor="edit-niche">Niche</label>
+                <input
+                  id="edit-niche"
+                  name="niche"
+                  className="input w-full"
+                  value={editForm.niche || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div>
+                <label className="label-text" htmlFor="edit-platform">Platform</label>
+                <select
+                  id="edit-platform"
+                  name="platform"
+                  className="select w-full"
+                  value={editForm.platform || ''}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, platform: e.target.value as Project['platform'] }))}
+                >
+                  <option value="twitter">Twitter</option>
+                  <option value="linkedin">LinkedIn</option>
+                  <option value="telegram">Telegram</option>
+                </select>
+              </div>
+              <div>
+                <label className="label-text" htmlFor="edit-tone">Tone</label>
+                <input
+                  id="edit-tone"
+                  name="tone"
+                  className="input w-full"
+                  value={editForm.tone || ''}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button onClick={() => setIsEditModalOpen(false)} className="btn btn-secondary" disabled={isUpdating}>
+                  Cancel
+                </button>
+                <button onClick={handleEditSubmit} className="btn btn-primary" disabled={isUpdating}>
+                  {isUpdating ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </Dialog>
+      )}
     </div>
   )
-} 
+}
