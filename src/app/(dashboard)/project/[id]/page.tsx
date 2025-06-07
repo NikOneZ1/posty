@@ -7,7 +7,6 @@ import { getProjectById, updateProject } from "@/api/projects"
 import { Project } from "@/types/Project"
 import { Idea } from "@/types/Idea"
 import { Button } from "@/components/ui/Button"
-import { ProjectNavbar } from "@/components/projects/ProjectNavbar"
 import { GeneratedIdeasList } from "@/components/projects/GeneratedIdeasList"
 import { IdeaInputForm } from "@/components/projects/IdeaInputForm"
 import { useIdeas } from "@/hooks/useIdeas"
@@ -17,7 +16,7 @@ import { Input } from "@/components/ui/Input"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 
 export default function ProjectDetailPage() {
-  const { user, loading: authLoading, signOut, session } = useAuth()
+  const { user, loading: authLoading, session } = useAuth()
   const router = useRouter()
   const params = useParams()
   const projectId = params?.id as string | undefined
@@ -146,10 +145,6 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <ProjectNavbar
-        onBack={() => router.push("/dashboard")}
-        onLogout={signOut}
-      />
       <main className="max-w-2xl mx-auto px-4 py-10">
         {loading ? (
           <div className="flex justify-center py-24 text-gray-400 text-lg">Loading project...</div>

@@ -202,10 +202,6 @@ export default function IdeaContentPage() {
   return (
     <div className="container mx-auto py-8 max-w-4xl">
       <div className="mb-8">
-        <Button className="mb-4" onClick={() => window.history.back()}>
-          ← Back to Project
-        </Button>
-        
         <h1 className="text-2xl font-bold mb-4">💡 IDEA</h1>
         <Card className="p-6 mb-6">
           {isEditing ? (
