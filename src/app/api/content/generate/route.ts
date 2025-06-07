@@ -23,14 +23,19 @@ export async function POST(request: Request) {
     }
 
     // 2. Parse request body
-    const { idea_text } = await request.json();
+    const { idea_text, project_id } = await request.json();
 
-    // 3. Get project tone if available
-    const { data: project } = await supabase
+    // 3. Get project info using provided project_id
+    const { data: project, error: projectError } = await supabase
       .from('projects')
       .select('*')
+      .eq('id', project_id)
       .eq('user_id', user.id)
       .single();
+
+    if (projectError || !project) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    }
 
     const content = await generateDraftFromIdea(idea_text, project);
 
