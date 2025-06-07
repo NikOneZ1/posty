@@ -88,11 +88,10 @@ export function ProjectCreateModal({ open, onClose, onCreate, creating }: Projec
               </div>
               <div>
                 <label className="label-text" htmlFor="niche">Niche</label>
-                <input
-                  type="text"
+                <textarea
                   id="niche"
                   name="niche"
-                  className="input w-full"
+                  className="textarea w-full"
                   placeholder="e.g. Technology, Health, Finance"
                   value={form.niche}
                   onChange={handleChange}
@@ -113,11 +112,10 @@ export function ProjectCreateModal({ open, onClose, onCreate, creating }: Projec
               </div>
               <div>
                 <label className="label-text" htmlFor="tone">Content Tone</label>
-                <input
-                  type="text"
+                <textarea
                   id="tone"
                   name="tone"
-                  className="input w-full"
+                  className="textarea w-full"
                   placeholder="e.g. Professional, Casual, Humorous"
                   value={form.tone}
                   onChange={handleChange}
