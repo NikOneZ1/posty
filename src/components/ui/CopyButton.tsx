@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface CopyButtonProps {
   text: string;
@@ -19,11 +20,8 @@ export function CopyButton({ text, className = '' }: CopyButtonProps) {
   };
 
   return (
-    <button
-      onClick={handleCopy}
-      className={`px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors ${className}`}
-    >
+    <button onClick={handleCopy} className={cn('btn', className)}>
       {copied ? 'Copied!' : 'Copy'}
     </button>
   );
-} 
+}
