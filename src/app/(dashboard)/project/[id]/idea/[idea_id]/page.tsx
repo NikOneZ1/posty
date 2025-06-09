@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
@@ -194,27 +192,32 @@ export default function IdeaContentPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-8 max-w-4xl flex items-center justify-center">
+      <div className="container mx-auto max-w-3xl py-20 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
+    <div className="container mx-auto max-w-3xl py-10 px-4">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-4">💡 IDEA</h1>
-        <Card className="p-6 mb-6">
+        <h1 className="text-3xl font-bold mb-6 flex items-center gap-2">
+          <span className="icon-[tabler--bulb] size-6"></span>
+          Idea Details
+        </h1>
+        <div className="card bg-base-100 border border-base-200 rounded-xl shadow-sm mb-6">
+          <div className="card-body p-6 space-y-4">
           {isEditing ? (
             <div className="space-y-4">
               <textarea
                 value={editedText}
                 onChange={(e) => setEditedText(e.target.value)}
-                className="w-full min-h-[100px] p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="textarea textarea-bordered w-full min-h-32"
                 placeholder="Edit your idea here..."
               />
               <div className="flex gap-2">
-                <Button
+                <button
+                  className="btn btn-primary"
                   onClick={handleUpdateIdea}
                   disabled={isUpdating}
                 >
@@ -226,35 +229,37 @@ export default function IdeaContentPage() {
                   ) : (
                     'Save Changes'
                   )}
-                </Button>
-                <Button
+                </button>
+                <button
+                  className="btn btn-ghost"
                   onClick={() => {
                     setIsEditing(false);
                     setEditedText(idea?.idea_text || '');
                   }}
                 >
                   Cancel
-                </Button>
+                </button>
               </div>
             </div>
           ) : (
-            <div className="flex justify-between items-start">
-              <p className="text-lg">{idea?.idea_text || 'No idea found'}</p>
-              <Button
-                className="text-black px-3 py-1"
+            <div className="flex justify-between items-start gap-4">
+              <p className="text-lg flex-1 break-words">{idea?.idea_text || 'No idea found'}</p>
+              <button
+                className="btn btn-outline btn-sm"
                 onClick={() => setIsEditing(true)}
               >
                 Edit
-              </Button>
+              </button>
             </div>
           )}
-        </Card>
+          </div>
+        </div>
 
         <div className="space-y-4">
-          <Button 
-            onClick={handleGenerate} 
+          <button
+            className="btn btn-primary w-full"
+            onClick={handleGenerate}
             disabled={isGenerating || !idea}
-            className="w-full"
           >
             {isGenerating ? (
               <>
@@ -264,18 +269,19 @@ export default function IdeaContentPage() {
             ) : (
               generatedContent ? 'Regenerate Content' : 'Generate Content'
             )}
-          </Button>
+          </button>
         </div>
       </div>
 
       {draftLoading ? (
-        <div className="mt-8 text-gray-400">Loading draft...</div>
+        <div className="mt-8 text-base-content/60">Loading draft...</div>
       ) : generatedContent && (
         <div className="mt-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">✍️ Generated Content:</h2>
             <div className="flex items-center gap-2">
-              <Button
+              <button
+                className="btn btn-primary"
                 onClick={handleSave}
                 disabled={isSaving}
               >
@@ -287,20 +293,22 @@ export default function IdeaContentPage() {
                 ) : (
                   'Save Changes'
                 )}
-              </Button>
-              <CopyButton text={generatedContent} />
+              </button>
+              <CopyButton text={generatedContent} className="btn" />
             </div>
           </div>
-          <Card className="p-6 mb-4">
-            <textarea
-              value={generatedContent}
-              onChange={(e) => setGeneratedContent(e.target.value)}
-              className="w-full min-h-[200px] p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Edit your content here..."
-            />
-          </Card>
+          <div className="card bg-base-100 border border-base-200 rounded-xl shadow-sm mb-4">
+            <div className="card-body p-6">
+              <textarea
+                value={generatedContent}
+                onChange={(e) => setGeneratedContent(e.target.value)}
+                className="textarea textarea-bordered w-full min-h-[250px]"
+                placeholder="Edit your content here..."
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
-} 
+}
