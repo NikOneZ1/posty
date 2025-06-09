@@ -1,5 +1,4 @@
 import React, { useState } from "react"
-import { Button } from "@/components/ui/Button"
 
 interface Props {
   onSubmit: (ideaText: string) => Promise<void>
@@ -27,7 +26,7 @@ export function IdeaInputForm({ onSubmit, disabled }: Props) {
     <form onSubmit={handleSubmit} className="mb-8">
       <div className="flex flex-col gap-4">
         <div>
-          <label htmlFor="idea-input" className="block text-sm font-medium text-gray-700 mb-2">
+          <label htmlFor="idea-input" className="label-text mb-2 block text-sm">
             Add Your Own Idea
           </label>
           <textarea
@@ -35,19 +34,20 @@ export function IdeaInputForm({ onSubmit, disabled }: Props) {
             value={ideaText}
             onChange={(e) => setIdeaText(e.target.value)}
             placeholder="Type your content idea here..."
-            className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent resize-none"
+            className="textarea w-full h-24"
             disabled={disabled || isSubmitting}
           />
         </div>
         <div className="flex justify-end">
-          <Button
+          <button
             type="submit"
+            className="btn btn-primary"
             disabled={!ideaText.trim() || disabled || isSubmitting}
           >
             {isSubmitting ? "Adding..." : "Add Idea"}
-          </Button>
+          </button>
         </div>
       </div>
     </form>
   )
-} 
+}
