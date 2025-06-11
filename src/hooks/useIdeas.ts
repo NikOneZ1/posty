@@ -70,7 +70,11 @@ export function useIdeas({ projectId, userId, accessToken, enabled = true }: Use
     setDeleteError(null)
     try {
       await IdeasService.delete({ ideaId, userId })
-      setIdeas((prev) => prev.filter((i) => i.id !== ideaId))
+      setIdeas((prev) =>
+        prev.map((i) =>
+          i.id === ideaId ? { ...i, status: "archived" } : i
+        )
+      )
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : "Failed to delete idea")
     }

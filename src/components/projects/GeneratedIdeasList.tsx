@@ -68,8 +68,8 @@ export function GeneratedIdeasList({ ideas, onDelete, projectId, onFilterClick }
                   onDelete(idea)
                 }}
                 className="p-1 text-base-content/50 hover:text-error"
-                title="Delete idea"
-                aria-label="Delete idea"
+                title="Archive idea"
+                aria-label="Archive idea"
               >
                 <span className="icon-[tabler--x] size-4" />
               </button>
