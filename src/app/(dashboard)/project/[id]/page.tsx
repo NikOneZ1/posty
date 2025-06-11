@@ -149,6 +149,18 @@ export default function ProjectDetailPage() {
     return true
   })
 
+  const statusOrder: Record<Idea['status'], number> = {
+    new: 0,
+    content_generated: 1,
+    ready: 2,
+    posted: 3,
+    archived: 4,
+  }
+
+  const sortedIdeas = [...filteredIdeas].sort(
+    (a, b) => statusOrder[a.status] - statusOrder[b.status]
+  )
+
   return (
     <div className="min-h-screen">
       <main className="container mx-auto max-w-3xl p-4 py-10">
@@ -211,7 +223,7 @@ export default function ProjectDetailPage() {
               </div>
             ) : (
               <GeneratedIdeasList
-                ideas={filteredIdeas}
+                ideas={sortedIdeas}
                 onDelete={handleDeleteIdea}
                 projectId={projectId!}
                 onFilterClick={() => setIsFilterModalOpen(true)}
