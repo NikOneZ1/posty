@@ -6,9 +6,10 @@ interface Props {
   ideas: Idea[]
   onDelete?: (idea: Idea) => void
   projectId: string
+  onFilterClick?: () => void
 }
 
-export function GeneratedIdeasList({ ideas, onDelete, projectId }: Props) {
+export function GeneratedIdeasList({ ideas, onDelete, projectId, onFilterClick }: Props) {
   const router = useRouter()
 
   if (!ideas.length) return null
@@ -35,7 +36,18 @@ export function GeneratedIdeasList({ ideas, onDelete, projectId }: Props) {
 
   return (
     <div className="mb-12">
-      <h2 className="text-lg font-semibold mb-4">Generated Ideas</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">Generated Ideas</h2>
+        {onFilterClick && (
+          <button
+            onClick={onFilterClick}
+            className="btn btn-ghost btn-sm flex items-center gap-1"
+          >
+            <span className="icon-[tabler--filter] size-4" />
+            Filter
+          </button>
+        )}
+      </div>
       <ul className="space-y-3">
         {ideas.map((idea) => (
           <li
