@@ -13,6 +13,22 @@ export function GeneratedIdeasList({ ideas, onDelete, projectId }: Props) {
 
   if (!ideas.length) return null
 
+  const statusLabels: Record<Idea['status'], string> = {
+    new: 'New',
+    content_generated: 'Content Generated',
+    ready: 'Ready',
+    posted: 'Posted',
+    archived: 'Archived',
+  }
+
+  const statusClasses: Record<Idea['status'], string> = {
+    new: 'badge-info',
+    content_generated: 'badge-primary',
+    ready: 'badge-success',
+    posted: 'badge-secondary',
+    archived: 'badge-error',
+  }
+
   const handleIdeaClick = (idea: Idea) => {
     router.push(`/project/${projectId}/idea/${idea.id}`)
   }
@@ -27,7 +43,12 @@ export function GeneratedIdeasList({ ideas, onDelete, projectId }: Props) {
             className="bg-base-100 border border-base-200 rounded-xl p-4 flex items-center justify-between hover:shadow-md transition cursor-pointer"
             onClick={() => handleIdeaClick(idea)}
           >
-            <span>{idea.idea_text}</span>
+            <div className="flex flex-col">
+              <span className="mb-1">{idea.idea_text}</span>
+              <span className={`badge badge-sm ${statusClasses[idea.status]}`}>
+                {statusLabels[idea.status]}
+              </span>
+            </div>
             {onDelete && (
               <button
                 onClick={(e) => {
