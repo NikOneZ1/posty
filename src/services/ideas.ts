@@ -22,7 +22,7 @@ export class IdeasService {
     const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .from("ideas")
-      .select("id, idea_text")
+      .select("id, idea_text, status")
       .eq("project_id", projectId)
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
