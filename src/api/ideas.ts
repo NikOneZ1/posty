@@ -15,7 +15,7 @@ export async function getIdeasForProject(project_id: string, user_id: string): P
 export async function deleteIdea(idea_id: string, user_id: string): Promise<void> {
   await supabase
     .from("ideas")
-    .delete()
+    .update({ status: 'archived' })
     .eq("id", idea_id)
     .eq("user_id", user_id)
 }

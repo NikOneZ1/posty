@@ -43,7 +43,7 @@ export class IdeasService {
     const supabase = getSupabaseClient()
     const { error } = await supabase
       .from("ideas")
-      .delete()
+      .update({ status: "archived" })
       .eq("id", ideaId)
       .eq("user_id", userId)
 
