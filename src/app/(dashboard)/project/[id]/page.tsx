@@ -8,6 +8,7 @@ import { Project } from "@/types/Project"
 import { Idea } from "@/types/Idea"
 import { GeneratedIdeasList } from "@/components/projects/GeneratedIdeasList"
 import { IdeaInputForm } from "@/components/projects/IdeaInputForm"
+import { IdeaFilterModal } from "@/components/projects/IdeaFilterModal"
 import { useIdeas } from "@/hooks/useIdeas"
 import { toast } from "sonner"
 
@@ -23,6 +24,9 @@ export default function ProjectDetailPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editForm, setEditForm] = useState<Partial<Project>>({})
   const [isUpdating, setIsUpdating] = useState(false)
+  const [filterStatus, setFilterStatus] = useState<Idea['status'] | 'all'>('all')
+  const [showArchived, setShowArchived] = useState(false)
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false)
 
   const {
     ideas,
@@ -139,6 +143,12 @@ export default function ProjectDetailPage() {
     }
   }
 
+  const filteredIdeas = ideas.filter((idea) => {
+    if (!showArchived && idea.status === 'archived') return false
+    if (filterStatus !== 'all' && idea.status !== filterStatus) return false
+    return true
+  })
+
   return (
     <div className="min-h-screen">
       <main className="container mx-auto max-w-3xl p-4 py-10">
@@ -200,7 +210,12 @@ export default function ProjectDetailPage() {
                 <div className="loading loading-spinner" />
               </div>
             ) : (
-              <GeneratedIdeasList ideas={ideas} onDelete={handleDeleteIdea} projectId={projectId!} />
+              <GeneratedIdeasList
+                ideas={filteredIdeas}
+                onDelete={handleDeleteIdea}
+                projectId={projectId!}
+                onFilterClick={() => setIsFilterModalOpen(true)}
+              />
             )}
           </>
         ) : null}
@@ -278,6 +293,17 @@ export default function ProjectDetailPage() {
           </div>
         </div>
       )}
+
+      <IdeaFilterModal
+        open={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        initialStatus={filterStatus}
+        showArchived={showArchived}
+        onApply={(status, archived) => {
+          setFilterStatus(status)
+          setShowArchived(archived)
+        }}
+      />
     </div>
   )
 }
