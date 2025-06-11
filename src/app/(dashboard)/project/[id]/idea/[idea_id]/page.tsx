@@ -21,6 +21,7 @@ export default function IdeaContentPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [statusUpdating, setStatusUpdating] = useState(false);
 
   useEffect(() => {
     const fetchIdea = async () => {
@@ -45,7 +46,7 @@ export default function IdeaContentPage() {
 
         const { data, error } = await supabase
           .from('ideas')
-          .select('id, idea_text, projects!inner(platform)')
+          .select('id, idea_text, status, projects!inner(platform)')
           .eq('id', ideaId)
           .eq('project_id', projectId)
           .eq('user_id', session.user.id)
@@ -190,6 +191,44 @@ export default function IdeaContentPage() {
     }
   };
 
+  const handleStatusChange = async (newStatus: Idea['status']) => {
+    if (!idea) return;
+    setStatusUpdating(true);
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (sessionError || !accessToken) {
+        toast.error('You must be signed in to update the idea.');
+        return;
+      }
+
+      const response = await fetch('/api/ideas/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          idea_id: idea.id,
+          status: newStatus,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update idea');
+      }
+
+      setIdea({ ...idea, status: newStatus });
+      toast.success('✅ Status updated!');
+    } catch (error) {
+      console.error('Error updating idea status:', error);
+      toast.error('Failed to update status. Please try again.');
+    } finally {
+      setStatusUpdating(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto max-w-3xl py-20 flex items-center justify-center">
@@ -250,6 +289,23 @@ export default function IdeaContentPage() {
               >
                 Edit
               </button>
+            </div>
+          )}
+          {idea && (
+            <div className="flex items-center gap-2">
+              <span className="font-medium">Status:</span>
+              <select
+                className="select select-sm"
+                value={idea.status}
+                onChange={(e) => handleStatusChange(e.target.value as Idea['status'])}
+                disabled={statusUpdating}
+              >
+                <option value="new">New</option>
+                <option value="content_generated">Content Generated</option>
+                <option value="ready">Ready</option>
+                <option value="posted">Posted</option>
+                <option value="archived">Archived</option>
+              </select>
             </div>
           )}
           </div>

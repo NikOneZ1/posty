@@ -71,10 +71,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Return ideas
   return res.status(200).json({
-    ideas: insertedIdeas.map((idea: { id: string; idea_text: string }) => ({
+    ideas: insertedIdeas.map((idea: { id: string; idea_text: string; status: string }) => ({
       id: idea.id,
       idea_text: idea.idea_text,
-      created_at: new Date().toISOString()
+      status: idea.status,
+      created_at: new Date().toISOString(),
     })),
   })
-} 
+}
