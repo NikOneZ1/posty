@@ -21,8 +21,9 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [editForm, setEditForm] = useState<Partial<Project>>({})
+  const [activeTab, setActiveTab] = useState<'ideas' | 'settings'>('ideas')
+  const [menuOpen, setMenuOpen] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [filterStatus, setFilterStatus] = useState<Idea['status'] | 'all'>('all')
   const [showArchived, setShowArchived] = useState(false)
@@ -88,7 +89,6 @@ export default function ProjectDetailPage() {
     try {
       const updatedProject = await updateProject(project.id, user.id, editForm)
       setProject(updatedProject)
-      setIsEditModalOpen(false)
       toast.success("Project updated successfully")
     } catch (error) {
       toast.error("Failed to update project")
@@ -98,19 +98,21 @@ export default function ProjectDetailPage() {
     }
   }
 
-  const openEditModal = () => {
-    if (!project) return
-    setEditForm({
-      name: project.name,
-      description: project.description,
-      niche: project.niche,
-      platform: project.platform,
-      tone: project.tone,
-    })
-    setIsEditModalOpen(true)
-  }
+  useEffect(() => {
+    if (project) {
+      setEditForm({
+        name: project.name,
+        description: project.description,
+        niche: project.niche,
+        platform: project.platform,
+        tone: project.tone,
+      })
+    }
+  }, [project])
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target
     setEditForm(prev => ({ ...prev, [name]: value }))
   }
@@ -182,29 +184,48 @@ export default function ProjectDetailPage() {
         ) : project ? (
           <>
             <div className="card bg-base-100 shadow-sm mb-8">
-              <div className="card-body">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
-                  <div className="space-y-1">
-                    <h1 className="text-3xl font-bold text-base-content">{project.name}</h1>
-                    <p className="text-base-content/60">{project.description}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={openEditModal} className="btn btn-neutral btn-sm sm:btn-md">Edit</button>
-                    <button onClick={handleDeleteProject} className="btn btn-error btn-sm sm:btn-md">Delete</button>
-                  </div>
+              <div className="card-body relative">
+                <div
+                  className="absolute right-2 top-2"
+                  tabIndex={0}
+                  onBlur={() => setMenuOpen(false)}
+                >
+                  <button
+                    onClick={() => setMenuOpen(v => !v)}
+                    className="btn btn-text btn-circle btn-sm text-base-content/70"
+                  >
+                    <span className="icon-[tabler--dots-vertical] size-5" />
+                  </button>
+                  {menuOpen && (
+                    <ul className="absolute right-0 mt-2 z-10 menu p-2 bg-base-100 rounded-box shadow-md w-40">
+                      <li>
+                        <button
+                          onClick={() => {
+                            setMenuOpen(false)
+                            handleDeleteProject()
+                          }}
+                          className="text-error"
+                        >
+                          Delete Project
+                        </button>
+                      </li>
+                    </ul>
+                  )}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                  <div><span className="font-medium">Niche:</span> {project.niche || 'Not set'}</div>
-                  <div><span className="font-medium">Platform:</span> <span className="capitalize">{project.platform}</span></div>
-                  <div><span className="font-medium">Tone:</span> {project.tone || 'Not set'}</div>
+                <div className="space-y-1 mb-4">
+                  <h1 className="text-3xl font-bold text-base-content">{project.name}</h1>
+                  <p className="text-base-content/60">{project.description}</p>
+                </div>
+                <div className="mt-4">
+                  <button
+                    onClick={generateIdeas}
+                    disabled={generating}
+                    className="btn btn-primary w-full"
+                  >
+                    {generating ? 'Generating...' : 'Generate Ideas'}
+                  </button>
                 </div>
               </div>
-            </div>
-
-            <div className="mb-8 flex justify-end">
-              <button onClick={generateIdeas} disabled={generating} className="btn btn-primary">
-                {generating ? 'Generating...' : 'Generate Ideas'}
-              </button>
             </div>
             {(generateError || deleteError || createError || ideasError) && (
               <div className="space-y-1 text-error text-sm mb-6">
@@ -215,96 +236,112 @@ export default function ProjectDetailPage() {
               </div>
             )}
 
-            <IdeaInputForm onSubmit={createIdea} disabled={generating} />
+            <div className="mb-6 flex w-full gap-2">
+              <button
+                className={`flex-1 px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'ideas' ? 'bg-primary text-primary-content' : 'bg-base-200'}`}
+                onClick={() => setActiveTab('ideas')}
+              >
+                Ideas
+              </button>
+              <button
+                className={`flex-1 px-4 py-2 rounded-full text-sm font-medium ${activeTab === 'settings' ? 'bg-primary text-primary-content' : 'bg-base-200'}`}
+                onClick={() => setActiveTab('settings')}
+              >
+                Settings
+              </button>
+            </div>
 
-            {ideasLoading ? (
-              <div className="flex justify-center py-10 text-base-content/60">
-                <div className="loading loading-spinner" />
-              </div>
-            ) : (
-              <GeneratedIdeasList
-                ideas={sortedIdeas}
-                onDelete={handleDeleteIdea}
-                projectId={projectId!}
-                onFilterClick={() => setIsFilterModalOpen(true)}
-              />
+            {activeTab === 'ideas' && (
+              <>
+                <IdeaInputForm onSubmit={createIdea} disabled={generating} />
+                {ideasLoading ? (
+                  <div className="flex justify-center py-10 text-base-content/60">
+                    <div className="loading loading-spinner" />
+                  </div>
+                ) : (
+                  <GeneratedIdeasList
+                    ideas={sortedIdeas}
+                    onDelete={handleDeleteIdea}
+                    projectId={projectId!}
+                    onFilterClick={() => setIsFilterModalOpen(true)}
+                  />
+                )}
+              </>
+            )}
+
+            {activeTab === 'settings' && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  handleEditSubmit()
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="label-text" htmlFor="edit-name">Name</label>
+                  <input
+                    id="edit-name"
+                    name="name"
+                    className="input w-full"
+                    value={editForm.name || ''}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <label className="label-text" htmlFor="edit-description">Description</label>
+                  <textarea
+                    id="edit-description"
+                    name="description"
+                    className="textarea w-full"
+                    value={editForm.description || ''}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <label className="label-text" htmlFor="edit-niche">Niche</label>
+                  <input
+                    id="edit-niche"
+                    name="niche"
+                    className="input w-full"
+                    value={editForm.niche || ''}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div>
+                  <label className="label-text" htmlFor="edit-platform">Platform</label>
+                  <select
+                    id="edit-platform"
+                    name="platform"
+                    className="select w-full"
+                    value={editForm.platform || ''}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, platform: e.target.value as Project['platform'] }))}
+                  >
+                    <option value="twitter">Twitter</option>
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="telegram">Telegram</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="label-text" htmlFor="edit-tone">Tone</label>
+                  <input
+                    id="edit-tone"
+                    name="tone"
+                    className="input w-full"
+                    value={editForm.tone || ''}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <button type="submit" className="btn btn-primary" disabled={isUpdating}>
+                    {isUpdating ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
             )}
           </>
         ) : null}
       </main>
 
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setIsEditModalOpen(false)} />
-          <div className="relative w-full max-w-md card bg-base-100 p-6 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">Edit Project</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="label-text" htmlFor="edit-name">Name</label>
-                <input
-                  id="edit-name"
-                  name="name"
-                  className="input w-full"
-                  value={editForm.name || ''}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <label className="label-text" htmlFor="edit-description">Description</label>
-                <input
-                  id="edit-description"
-                  name="description"
-                  className="input w-full"
-                  value={editForm.description || ''}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <label className="label-text" htmlFor="edit-niche">Niche</label>
-                <input
-                  id="edit-niche"
-                  name="niche"
-                  className="input w-full"
-                  value={editForm.niche || ''}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div>
-                <label className="label-text" htmlFor="edit-platform">Platform</label>
-                <select
-                  id="edit-platform"
-                  name="platform"
-                  className="select w-full"
-                  value={editForm.platform || ''}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, platform: e.target.value as Project['platform'] }))}
-                >
-                  <option value="twitter">Twitter</option>
-                  <option value="linkedin">LinkedIn</option>
-                  <option value="telegram">Telegram</option>
-                </select>
-              </div>
-              <div>
-                <label className="label-text" htmlFor="edit-tone">Tone</label>
-                <input
-                  id="edit-tone"
-                  name="tone"
-                  className="input w-full"
-                  value={editForm.tone || ''}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button onClick={() => setIsEditModalOpen(false)} className="btn btn-secondary" disabled={isUpdating}>
-                  Cancel
-                </button>
-                <button onClick={handleEditSubmit} className="btn btn-primary" disabled={isUpdating}>
-                  {isUpdating ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <IdeaFilterModal
         open={isFilterModalOpen}
