@@ -22,6 +22,8 @@ export default function IdeaContentPage() {
   const [editedText, setEditedText] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState(false);
+  const [rewriteMenuOpen, setRewriteMenuOpen] = useState(false);
+  const [isRewriting, setIsRewriting] = useState(false);
 
   useEffect(() => {
     const fetchIdea = async () => {
@@ -149,6 +151,43 @@ export default function IdeaContentPage() {
       toast.error('Failed to save content. Please try again.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleShorten = async () => {
+    if (!generatedContent) return;
+    setIsRewriting(true);
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (sessionError || !accessToken) {
+        toast.error('You must be signed in to rewrite content.');
+        return;
+      }
+
+      const response = await fetch('/api/content/rewrite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ text: generatedContent, action: 'shorten' }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to rewrite content');
+      }
+
+      const data = await response.json();
+      setGeneratedContent(data.text);
+      toast.success('✅ Content shortened!');
+    } catch (error) {
+      console.error('Error rewriting content:', error);
+      toast.error('Failed to rewrite content.');
+    } finally {
+      setIsRewriting(false);
+      setRewriteMenuOpen(false);
     }
   };
 
@@ -358,12 +397,30 @@ export default function IdeaContentPage() {
           </div>
           <div className="card bg-base-100 border border-base-200 rounded-xl shadow-sm mb-4">
             <div className="card-body p-6">
-              <textarea
-                value={generatedContent}
-                onChange={(e) => setGeneratedContent(e.target.value)}
-                className="textarea textarea-bordered w-full min-h-[250px]"
-                placeholder="Edit your content here..."
-              />
+                <textarea
+                  value={generatedContent}
+                  onChange={(e) => setGeneratedContent(e.target.value)}
+                  className="textarea textarea-bordered w-full min-h-[250px]"
+                  placeholder="Edit your content here..."
+                />
+                <div className="relative inline-block mt-2" tabIndex={0} onBlur={() => setRewriteMenuOpen(false)}>
+                  <button
+                    onClick={() => setRewriteMenuOpen((v) => !v)}
+                    className="btn btn-ghost btn-sm"
+                    aria-label="Rewrite options"
+                  >
+                    <span className="icon-[tabler--wand] size-4" />
+                  </button>
+                  {rewriteMenuOpen && (
+                    <ul className="absolute z-10 mt-1 menu p-2 bg-base-100 rounded-box shadow-md w-32 text-sm">
+                      <li>
+                        <button onClick={handleShorten} disabled={isRewriting}>
+                          {isRewriting ? 'Shortening...' : 'Shorten'}
+                        </button>
+                      </li>
+                    </ul>
+                  )}
+                </div>
             </div>
           </div>
         </div>
