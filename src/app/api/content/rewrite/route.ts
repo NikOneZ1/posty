@@ -20,13 +20,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { text, action } = await request.json();
+    const { text, action, prompt } = await request.json();
     if (
       typeof text !== 'string' ||
       ![
         'shorten',
         'expand',
         'fix',
+        'custom',
         'professional',
         'empathetic',
         'casual',
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 
-    const rewritten = await rewriteContent(text, action);
+    const rewritten = await rewriteContent(text, action, prompt);
     return NextResponse.json({ text: rewritten });
   } catch (error) {
     console.error('Rewrite error:', error);
