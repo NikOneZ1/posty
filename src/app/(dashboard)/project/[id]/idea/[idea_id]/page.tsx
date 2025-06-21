@@ -24,7 +24,7 @@ export default function IdeaContentPage() {
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [rewriteMenuOpen, setRewriteMenuOpen] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
-  const [rewriteAction, setRewriteAction] = useState<"shorten" | "expand" | null>(null);
+  const [rewriteAction, setRewriteAction] = useState<"shorten" | "expand" | "fix" | null>(null);
 
   useEffect(() => {
     const fetchIdea = async () => {
@@ -226,6 +226,48 @@ export default function IdeaContentPage() {
       const data = await response.json();
       setGeneratedContent(data.text);
       toast.success('✅ Content expanded!');
+    } catch (error) {
+      console.error('Error rewriting content:', error);
+      toast.error('Failed to rewrite content.');
+    } finally {
+      setIsRewriting(false);
+      setRewriteAction(null);
+      setRewriteMenuOpen(false);
+    }
+  };
+
+  const handleFix = async () => {
+    if (!generatedContent) return;
+    setRewriteAction('fix');
+    setIsRewriting(true);
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (sessionError || !accessToken) {
+        toast.error('You must be signed in to rewrite content.');
+        return;
+      }
+
+      const response = await fetch('/api/content/rewrite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ text: generatedContent, action: 'fix' }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to rewrite content');
+      }
+
+      const data = await response.json();
+      setGeneratedContent(data.text);
+      toast.success('✅ Grammar fixed!');
     } catch (error) {
       console.error('Error rewriting content:', error);
       toast.error('Failed to rewrite content.');
@@ -466,6 +508,11 @@ export default function IdeaContentPage() {
                       <li>
                         <button onClick={handleExpand} disabled={isRewriting}>
                           {isRewriting && rewriteAction === 'expand' ? 'Expanding...' : 'Expand'}
+                        </button>
+                      </li>
+                      <li>
+                        <button onClick={handleFix} disabled={isRewriting}>
+                          {isRewriting && rewriteAction === 'fix' ? 'Fixing...' : 'Fix Grammar'}
                         </button>
                       </li>
                     </ul>
