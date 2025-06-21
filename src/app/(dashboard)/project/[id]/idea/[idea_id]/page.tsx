@@ -24,6 +24,7 @@ export default function IdeaContentPage() {
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [rewriteMenuOpen, setRewriteMenuOpen] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
+  const [rewriteAction, setRewriteAction] = useState<"shorten" | "expand" | null>(null);
 
   useEffect(() => {
     const fetchIdea = async () => {
@@ -156,6 +157,7 @@ export default function IdeaContentPage() {
 
   const handleShorten = async () => {
     if (!generatedContent) return;
+    setRewriteAction('shorten');
     setIsRewriting(true);
     try {
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -187,6 +189,49 @@ export default function IdeaContentPage() {
       toast.error('Failed to rewrite content.');
     } finally {
       setIsRewriting(false);
+      setRewriteAction(null);
+      setRewriteMenuOpen(false);
+    }
+  };
+
+  const handleExpand = async () => {
+    if (!generatedContent) return;
+    setRewriteAction('expand');
+    setIsRewriting(true);
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (sessionError || !accessToken) {
+        toast.error('You must be signed in to rewrite content.');
+        return;
+      }
+
+      const response = await fetch('/api/content/rewrite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ text: generatedContent, action: 'expand' }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to rewrite content');
+      }
+
+      const data = await response.json();
+      setGeneratedContent(data.text);
+      toast.success('✅ Content expanded!');
+    } catch (error) {
+      console.error('Error rewriting content:', error);
+      toast.error('Failed to rewrite content.');
+    } finally {
+      setIsRewriting(false);
+      setRewriteAction(null);
       setRewriteMenuOpen(false);
     }
   };
@@ -415,7 +460,12 @@ export default function IdeaContentPage() {
                     <ul className="absolute z-10 mt-1 menu p-2 bg-base-100 rounded-box shadow-md w-32 text-sm">
                       <li>
                         <button onClick={handleShorten} disabled={isRewriting}>
-                          {isRewriting ? 'Shortening...' : 'Shorten'}
+                          {isRewriting && rewriteAction === 'shorten' ? 'Shortening...' : 'Shorten'}
+                        </button>
+                      </li>
+                      <li>
+                        <button onClick={handleExpand} disabled={isRewriting}>
+                          {isRewriting && rewriteAction === 'expand' ? 'Expanding...' : 'Expand'}
                         </button>
                       </li>
                     </ul>

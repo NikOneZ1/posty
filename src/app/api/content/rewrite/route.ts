@@ -21,11 +21,11 @@ export async function POST(request: Request) {
     }
 
     const { text, action } = await request.json();
-    if (typeof text !== 'string' || action !== 'shorten') {
+    if (typeof text !== 'string' || (action !== 'shorten' && action !== 'expand')) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 
-    const rewritten = await rewriteContent(text, 'shorten');
+    const rewritten = await rewriteContent(text, action);
     return NextResponse.json({ text: rewritten });
   } catch (error) {
     console.error('Rewrite error:', error);
