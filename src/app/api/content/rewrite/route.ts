@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabaseServerClient';
-import { rewriteContent } from '@/lib/ai/rewriteContent';
+import { rewriteContent, RewriteTone } from '@/lib/ai/rewriteContent';
 
 function getAccessToken(request: Request): string | null {
   const authHeader = request.headers.get('authorization');
@@ -20,12 +20,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { text, action } = await request.json();
-    if (typeof text !== 'string' || (action !== 'shorten' && action !== 'expand')) {
+    const { text, action, tone } = await request.json();
+    if (
+      typeof text !== 'string' ||
+      (action !== 'shorten' && action !== 'expand' && action !== 'tone') ||
+      (action === 'tone' && typeof tone !== 'string')
+    ) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 
-    const rewritten = await rewriteContent(text, action);
+    const rewritten = await rewriteContent(text, action, tone as RewriteTone);
     return NextResponse.json({ text: rewritten });
   } catch (error) {
     console.error('Rewrite error:', error);

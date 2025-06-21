@@ -23,8 +23,17 @@ export default function IdeaContentPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [rewriteMenuOpen, setRewriteMenuOpen] = useState(false);
+  const [toneMenuOpen, setToneMenuOpen] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
-  const [rewriteAction, setRewriteAction] = useState<"shorten" | "expand" | null>(null);
+  const [rewriteAction, setRewriteAction] = useState<"shorten" | "expand" | "tone" | null>(null);
+  const [rewriteTone, setRewriteTone] = useState<
+    | 'professional'
+    | 'empathetic'
+    | 'casual'
+    | 'neutral'
+    | 'educational'
+    | null
+  >(null);
 
   useEffect(() => {
     const fetchIdea = async () => {
@@ -191,6 +200,7 @@ export default function IdeaContentPage() {
       setIsRewriting(false);
       setRewriteAction(null);
       setRewriteMenuOpen(false);
+      setToneMenuOpen(false);
     }
   };
 
@@ -233,6 +243,54 @@ export default function IdeaContentPage() {
       setIsRewriting(false);
       setRewriteAction(null);
       setRewriteMenuOpen(false);
+      setToneMenuOpen(false);
+    }
+  };
+
+  const handleChangeTone = async (
+    tone: 'professional' | 'empathetic' | 'casual' | 'neutral' | 'educational'
+  ) => {
+    if (!generatedContent) return;
+    setRewriteAction('tone');
+    setRewriteTone(tone);
+    setIsRewriting(true);
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (sessionError || !accessToken) {
+        toast.error('You must be signed in to rewrite content.');
+        return;
+      }
+
+      const response = await fetch('/api/content/rewrite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ text: generatedContent, action: 'tone', tone }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to rewrite content');
+      }
+
+      const data = await response.json();
+      setGeneratedContent(data.text);
+      toast.success('✅ Tone updated!');
+    } catch (error) {
+      console.error('Error rewriting content:', error);
+      toast.error('Failed to rewrite content.');
+    } finally {
+      setIsRewriting(false);
+      setRewriteAction(null);
+      setRewriteTone(null);
+      setRewriteMenuOpen(false);
+      setToneMenuOpen(false);
     }
   };
 
@@ -448,7 +506,14 @@ export default function IdeaContentPage() {
                   className="textarea textarea-bordered w-full min-h-[250px]"
                   placeholder="Edit your content here..."
                 />
-                <div className="relative inline-block mt-2" tabIndex={0} onBlur={() => setRewriteMenuOpen(false)}>
+                <div
+                  className="relative inline-block mt-2"
+                  tabIndex={0}
+                  onBlur={() => {
+                    setRewriteMenuOpen(false);
+                    setToneMenuOpen(false);
+                  }}
+                >
                   <button
                     onClick={() => setRewriteMenuOpen((v) => !v)}
                     className="btn btn-ghost btn-sm"
@@ -457,7 +522,7 @@ export default function IdeaContentPage() {
                     <span className="icon-[tabler--wand] size-4" />
                   </button>
                   {rewriteMenuOpen && (
-                    <ul className="absolute z-10 mt-1 menu p-2 bg-base-100 rounded-box shadow-md w-32 text-sm">
+                    <ul className="absolute z-10 mt-1 menu p-2 bg-base-100 rounded-box shadow-md w-40 text-sm">
                       <li>
                         <button onClick={handleShorten} disabled={isRewriting}>
                           {isRewriting && rewriteAction === 'shorten' ? 'Shortening...' : 'Shorten'}
@@ -467,6 +532,44 @@ export default function IdeaContentPage() {
                         <button onClick={handleExpand} disabled={isRewriting}>
                           {isRewriting && rewriteAction === 'expand' ? 'Expanding...' : 'Expand'}
                         </button>
+                      </li>
+                      <li className="relative">
+                        <button
+                          onClick={() => setToneMenuOpen(v => !v)}
+                          className="justify-between w-full"
+                        >
+                          Change tone to…
+                          <span className="icon-[tabler--chevron-right] size-4" />
+                        </button>
+                        {toneMenuOpen && (
+                          <ul className="absolute left-full top-0 ml-1 menu p-2 bg-base-100 rounded-box shadow-md w-40 text-sm">
+                            <li>
+                              <button onClick={() => handleChangeTone('professional')} disabled={isRewriting}>
+                                {isRewriting && rewriteAction === 'tone' && rewriteTone === 'professional' ? 'Updating...' : 'Professional'}
+                              </button>
+                            </li>
+                            <li>
+                              <button onClick={() => handleChangeTone('empathetic')} disabled={isRewriting}>
+                                {isRewriting && rewriteAction === 'tone' && rewriteTone === 'empathetic' ? 'Updating...' : 'Empathetic'}
+                              </button>
+                            </li>
+                            <li>
+                              <button onClick={() => handleChangeTone('casual')} disabled={isRewriting}>
+                                {isRewriting && rewriteAction === 'tone' && rewriteTone === 'casual' ? 'Updating...' : 'Casual'}
+                              </button>
+                            </li>
+                            <li>
+                              <button onClick={() => handleChangeTone('neutral')} disabled={isRewriting}>
+                                {isRewriting && rewriteAction === 'tone' && rewriteTone === 'neutral' ? 'Updating...' : 'Neutral'}
+                              </button>
+                            </li>
+                            <li>
+                              <button onClick={() => handleChangeTone('educational')} disabled={isRewriting}>
+                                {isRewriting && rewriteAction === 'tone' && rewriteTone === 'educational' ? 'Updating...' : 'Educational'}
+                              </button>
+                            </li>
+                          </ul>
+                        )}
                       </li>
                     </ul>
                   )}
