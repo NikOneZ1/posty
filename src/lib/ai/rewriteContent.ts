@@ -8,11 +8,13 @@ export async function rewriteContent(
     | "shorten"
     | "expand"
     | "fix"
+    | "custom"
     | "professional"
     | "empathetic"
     | "casual"
     | "neutral"
     | "educational",
+  customPrompt?: string
 ) {
   let prompt: string;
   switch (action) {
@@ -40,13 +42,17 @@ export async function rewriteContent(
     case "educational":
       prompt = `Rewrite the following text in an educational tone:\n\n${text}`;
       break;
+    case "custom":
+      if (!customPrompt) throw new Error("Custom prompt required");
+      prompt = `${customPrompt}\n\n${text}`;
+      break;
     default:
       throw new Error("Unsupported action");
   }
 
   const response = await openai.responses.create({
     model: "gpt-4.1-mini",
-    instructions: "You rewrite content based on a provided action.",
+    instructions: "You rewrite content based on a provided action or prompt.",
     input: prompt,
   });
 
