@@ -25,10 +25,12 @@ export default function IdeaContentPage() {
   const [rewriteMenuOpen, setRewriteMenuOpen] = useState(false);
   const [toneMenuOpen, setToneMenuOpen] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
   const [rewriteAction, setRewriteAction] = useState<
     | "shorten"
     | "expand"
     | "fix"
+    | "custom"
     | "tone_professional"
     | "tone_empathetic"
     | "tone_casual"
@@ -279,6 +281,53 @@ export default function IdeaContentPage() {
       const data = await response.json();
       setGeneratedContent(data.text);
       toast.success('✅ Grammar fixed!');
+    } catch (error) {
+      console.error('Error rewriting content:', error);
+      toast.error('Failed to rewrite content.');
+    } finally {
+      setIsRewriting(false);
+      setRewriteAction(null);
+      setRewriteMenuOpen(false);
+    }
+  };
+
+  const handleCustomRewrite = async () => {
+    if (!generatedContent || !customPrompt.trim()) return;
+    setRewriteAction('custom');
+    setIsRewriting(true);
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (sessionError || !accessToken) {
+        toast.error('You must be signed in to rewrite content.');
+        return;
+      }
+
+      const response = await fetch('/api/content/rewrite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+          text: generatedContent,
+          action: 'custom',
+          prompt: customPrompt.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to rewrite content');
+      }
+
+      const data = await response.json();
+      setGeneratedContent(data.text);
+      toast.success('✅ Content updated!');
+      setCustomPrompt('');
     } catch (error) {
       console.error('Error rewriting content:', error);
       toast.error('Failed to rewrite content.');
@@ -563,70 +612,86 @@ export default function IdeaContentPage() {
                     <span className="icon-[tabler--wand] size-4" />
                   </button>
                   {rewriteMenuOpen && (
-                    <ul className="absolute z-10 mt-1 menu p-2 bg-base-100 rounded-box shadow-md w-32 text-sm">
-                      <li>
-                        <button onClick={handleShorten} disabled={isRewriting}>
-                          {isRewriting && rewriteAction === 'shorten' ? 'Shortening...' : 'Shorten'}
-                        </button>
-                      </li>
-                      <li>
-                        <button onClick={handleExpand} disabled={isRewriting}>
-                          {isRewriting && rewriteAction === 'expand' ? 'Expanding...' : 'Expand'}
-                        </button>
-                      </li>
-                      <li>
-                        <button onClick={handleFix} disabled={isRewriting}>
-                          {isRewriting && rewriteAction === 'fix' ? 'Fixing...' : 'Fix Grammar'}
-                        </button>
-                      </li>
-                      <li
-                        className="relative"
-                        tabIndex={0}
-                        onBlur={(e) => {
-                          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                            setToneMenuOpen(false);
-                          }
-                        }}
+                    <div className="absolute z-10 bottom-full mb-1 w-48 bg-base-100 rounded-box shadow-md p-2 text-sm space-y-2">
+                      <input
+                        type="text"
+                        placeholder="write with ai or select from below"
+                        className="input input-bordered input-sm w-full"
+                        value={customPrompt}
+                        onChange={(e) => setCustomPrompt(e.target.value)}
+                      />
+                      <button
+                        onClick={handleCustomRewrite}
+                        className="btn btn-primary btn-sm w-full"
+                        disabled={isRewriting}
                       >
-                        <button
-                          onClick={() => setToneMenuOpen((v) => !v)}
-                          className="flex items-center justify-between w-full"
-                          disabled={isRewriting}
+                        {isRewriting && rewriteAction === 'custom' ? 'Rewriting...' : 'Rewrite'}
+                      </button>
+                      <ul className="menu p-0">
+                        <li>
+                          <button onClick={handleShorten} disabled={isRewriting}>
+                            {isRewriting && rewriteAction === 'shorten' ? 'Shortening...' : 'Shorten'}
+                          </button>
+                        </li>
+                        <li>
+                          <button onClick={handleExpand} disabled={isRewriting}>
+                            {isRewriting && rewriteAction === 'expand' ? 'Expanding...' : 'Expand'}
+                          </button>
+                        </li>
+                        <li>
+                          <button onClick={handleFix} disabled={isRewriting}>
+                            {isRewriting && rewriteAction === 'fix' ? 'Fixing...' : 'Fix Grammar'}
+                          </button>
+                        </li>
+                        <li
+                          className="relative"
+                          tabIndex={0}
+                          onBlur={(e) => {
+                            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                              setToneMenuOpen(false);
+                            }
+                          }}
                         >
-                          Change tone to...
-                          <span className="icon-[tabler--chevron-right] size-4" />
-                        </button>
-                        {toneMenuOpen && (
-                          <ul className="absolute left-full top-0 ml-2 menu p-2 bg-base-100 rounded-box shadow-md w-40 text-sm">
-                            <li>
-                              <button onClick={() => handleTone('professional')} disabled={isRewriting}>
-                                {isRewriting && rewriteAction === 'tone_professional' ? 'Changing...' : 'Professional'}
-                              </button>
-                            </li>
-                            <li>
-                              <button onClick={() => handleTone('empathetic')} disabled={isRewriting}>
-                                {isRewriting && rewriteAction === 'tone_empathetic' ? 'Changing...' : 'Empathetic'}
-                              </button>
-                            </li>
-                            <li>
-                              <button onClick={() => handleTone('casual')} disabled={isRewriting}>
-                                {isRewriting && rewriteAction === 'tone_casual' ? 'Changing...' : 'Casual'}
-                              </button>
-                            </li>
-                            <li>
-                              <button onClick={() => handleTone('neutral')} disabled={isRewriting}>
-                                {isRewriting && rewriteAction === 'tone_neutral' ? 'Changing...' : 'Neutral'}
-                              </button>
-                            </li>
-                            <li>
-                              <button onClick={() => handleTone('educational')} disabled={isRewriting}>
-                                {isRewriting && rewriteAction === 'tone_educational' ? 'Changing...' : 'Educational'}
-                              </button>
-                            </li>
-                          </ul>
-                        )}
-                      </li>
-                    </ul>
+                          <button
+                            onClick={() => setToneMenuOpen((v) => !v)}
+                            className="flex items-center justify-between w-full"
+                            disabled={isRewriting}
+                          >
+                            Change tone to...
+                            <span className="icon-[tabler--chevron-right] size-4" />
+                          </button>
+                          {toneMenuOpen && (
+                            <ul className="absolute left-full top-0 ml-2 menu p-2 bg-base-100 rounded-box shadow-md w-40 text-sm">
+                              <li>
+                                <button onClick={() => handleTone('professional')} disabled={isRewriting}>
+                                  {isRewriting && rewriteAction === 'tone_professional' ? 'Changing...' : 'Professional'}
+                                </button>
+                              </li>
+                              <li>
+                                <button onClick={() => handleTone('empathetic')} disabled={isRewriting}>
+                                  {isRewriting && rewriteAction === 'tone_empathetic' ? 'Changing...' : 'Empathetic'}
+                                </button>
+                              </li>
+                              <li>
+                                <button onClick={() => handleTone('casual')} disabled={isRewriting}>
+                                  {isRewriting && rewriteAction === 'tone_casual' ? 'Changing...' : 'Casual'}
+                                </button>
+                              </li>
+                              <li>
+                                <button onClick={() => handleTone('neutral')} disabled={isRewriting}>
+                                  {isRewriting && rewriteAction === 'tone_neutral' ? 'Changing...' : 'Neutral'}
+                                </button>
+                              </li>
+                              <li>
+                                <button onClick={() => handleTone('educational')} disabled={isRewriting}>
+                                  {isRewriting && rewriteAction === 'tone_educational' ? 'Changing...' : 'Educational'}
+                                </button>
+                              </li>
+                            </ul>
+                          )}
+                        </li>
+                      </ul>
+                    </div>
                   )}
                 </div>
             </div>
