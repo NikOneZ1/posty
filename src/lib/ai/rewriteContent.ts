@@ -2,7 +2,7 @@ import OpenAI from "openai";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-export async function rewriteContent(text: string, action: "shorten" | "expand") {
+export async function rewriteContent(text: string, action: "shorten" | "expand" | "fix") {
   let prompt: string;
   switch (action) {
     case "shorten":
@@ -10,6 +10,9 @@ export async function rewriteContent(text: string, action: "shorten" | "expand")
       break;
     case "expand":
       prompt = `Expand the following text with more detail while keeping its original meaning:\n\n${text}`;
+      break;
+    case "fix":
+      prompt = `Fix any grammar or spelling mistakes in the following text without changing its meaning:\n\n${text}`;
       break;
     default:
       throw new Error("Unsupported action");

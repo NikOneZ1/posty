@@ -21,7 +21,10 @@ export async function POST(request: Request) {
     }
 
     const { text, action } = await request.json();
-    if (typeof text !== 'string' || (action !== 'shorten' && action !== 'expand')) {
+    if (
+      typeof text !== 'string' ||
+      (action !== 'shorten' && action !== 'expand' && action !== 'fix')
+    ) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
     }
 
