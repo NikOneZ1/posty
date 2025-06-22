@@ -41,6 +41,8 @@ export default function HomePage() {
             className="md:navbar-end collapse hidden grow basis-full overflow-hidden transition-[height] duration-300 max-md:w-full"
           >
             <ul className="menu md:menu-horizontal gap-2 p-0 text-base max-md:mt-2">
+              <li><a href="#how-it-works" className="scroll-smooth">How it works</a></li>
+              <li><a href="#pricing" className="scroll-smooth">Pricing</a></li>
               {user && session ? (
                 <li><Link href="/dashboard">Dashboard</Link></li>
               ) : (
@@ -105,13 +107,13 @@ export default function HomePage() {
               Rewrite Helpers
             </h3>
             <p className="text-base-content/70">
-              Quickly “Shorten,” “Expand,” “Add hook,” or “Change tone” with 1-click actions. More coming soon.
+              Quickly "Shorten," "Expand," "Add hook," or "Change tone" with 1-click actions. More coming soon.
             </p>
           </div>
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-16">
+      <section id="how-it-works" className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-base-content text-center mb-10">How it works</h2>
         <ol className="relative border-l-2 border-base-300 ml-6 space-y-12">
           <li className="ml-6">
@@ -122,7 +124,7 @@ export default function HomePage() {
           <li className="ml-6">
             <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-content font-bold">2</span>
             <h3 className="text-xl font-semibold text-base-content mb-1">Polish with AI</h3>
-            <p className="text-base-content/70">Use smart rewrite actions like “Shorten,” “Add hook,” or “Change tone” to shape your message.</p>
+            <p className="text-base-content/70">Use smart rewrite actions like "Shorten," "Add hook," or "Change tone" to shape your message.</p>
           </li>
           <li className="ml-6">
             <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-content font-bold">3</span>
@@ -132,9 +134,12 @@ export default function HomePage() {
         </ol>
       </section>
 
+      <div id="pricing">
         <PricingSection />
-        <CTABanner />
-        <Footer />
       </div>
+
+      <CTABanner />
+      <Footer />
+    </div>
   )
 }
