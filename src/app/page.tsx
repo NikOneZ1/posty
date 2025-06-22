@@ -3,6 +3,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useAuth } from "@/contexts/AuthContext"
+import PricingSection from "@/components/PricingSection"
 
 export default function HomePage() {
   const { user, session } = useAuth()
@@ -107,6 +108,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <PricingSection />
 
       <section className="container mx-auto px-4 py-16">
         <h2 className="text-3xl font-bold text-base-content text-center mb-10">How it works</h2>
