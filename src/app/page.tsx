@@ -60,8 +60,8 @@ export default function HomePage() {
             Posty turns brainstorming into published posts across X, Telegram &amp; LinkedIn—powered by AI and built right inside your browser.
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
-            <Link href="/login" className="btn btn-primary px-6">
-              Login
+            <Link href={user && session ? "/dashboard" : "/login"} className="btn btn-primary px-6">
+              Start Creating
             </Link>
             <Link href="#" className="btn btn-outline px-6">
               Book a 5-min demo
