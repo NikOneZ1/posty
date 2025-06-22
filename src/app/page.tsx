@@ -76,6 +76,8 @@ export default function HomePage() {
         </div>
       </section>
 
+
+
       <section className="container mx-auto px-4 py-16">
         <div className="grid gap-12 md:grid-cols-3 text-center">
           <div className="space-y-4">
@@ -106,6 +108,41 @@ export default function HomePage() {
             </p>
           </div>
         </div>
+      </section>
+
+      <section className="container mx-auto px-4 py-16">
+        <h2 className="text-3xl font-bold text-center mb-10 text-base-content">
+          How it works
+        </h2>
+        <ol className="relative border-l border-base-200 pl-6 space-y-12">
+          <li className="ml-4">
+            <div className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-content">
+              1
+            </div>
+            <h3 className="text-xl font-semibold text-base-content">Capture ideas</h3>
+            <p className="text-base-content/70">
+              Manually jot down a thought or generate platform-specific ideas with AI.
+            </p>
+          </li>
+          <li className="ml-4">
+            <div className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-content">
+              2
+            </div>
+            <h3 className="text-xl font-semibold text-base-content">Polish with AI</h3>
+            <p className="text-base-content/70">
+              Use smart rewrite actions like “Shorten,” “Add hook,” or “Change tone” to shape your message.
+            </p>
+          </li>
+          <li className="ml-4">
+            <div className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-content">
+              3
+            </div>
+            <h3 className="text-xl font-semibold text-base-content">Generate content</h3>
+            <p className="text-base-content/70">
+              Turn ideas into complete drafts tailored for Twitter, LinkedIn, or Instagram — ready to post.
+            </p>
+          </li>
+        </ol>
       </section>
     </div>
   )
