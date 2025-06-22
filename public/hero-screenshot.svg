@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500" fill="none">
+  <rect width="800" height="500" rx="20" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="40" y="40" width="320" height="40" rx="8" fill="#f3f4f6"/>
+  <rect x="40" y="100" width="720" height="40" rx="8" fill="#f3f4f6"/>
+  <rect x="40" y="160" width="720" height="40" rx="8" fill="#f3f4f6"/>
+  <rect x="40" y="220" width="720" height="40" rx="8" fill="#f3f4f6"/>
+  <rect x="40" y="280" width="150" height="30" rx="6" fill="#f3f4f6"/>
+  <rect x="200" y="280" width="150" height="30" rx="6" fill="#f3f4f6"/>
+  <rect x="360" y="280" width="150" height="30" rx="6" fill="#f3f4f6"/>
+  <rect x="40" y="340" width="110" height="28" rx="6" fill="#2563eb"/>
+  <rect x="160" y="340" width="110" height="28" rx="6" fill="#10b981"/>
+  <rect x="280" y="340" width="110" height="28" rx="6" fill="#f59e0b"/>
+  <text x="95" y="360" font-size="14" text-anchor="middle" fill="white" font-family="Arial, sans-serif">Regenerate</text>
+  <text x="215" y="360" font-size="14" text-anchor="middle" fill="white" font-family="Arial, sans-serif">Rewrite</text>
+  <text x="335" y="360" font-size="14" text-anchor="middle" fill="white" font-family="Arial, sans-serif">Schedule</text>
+</svg>
