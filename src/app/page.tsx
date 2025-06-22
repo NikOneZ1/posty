@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useAuth } from "@/contexts/AuthContext"
 
 export default function HomePage() {
@@ -37,6 +38,33 @@ export default function HomePage() {
               </div>
           </div>
         </nav>
+      <section className="max-w-6xl mx-auto px-4 py-20 flex flex-col md:flex-row items-center gap-10">
+        <div className="flex-1">
+          <h1 className="text-4xl sm:text-5xl font-bold text-base-content mb-6">
+            Create, refine &amp; schedule content in place.
+          </h1>
+          <p className="text-lg text-base-content/70 mb-8">
+            Posty turns brainstorming into published posts across X, Telegram &amp; LinkedIn—powered by AI and built right inside your browser.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Link href="/login" className="btn btn-primary">
+              Login
+            </Link>
+            <a href="#" className="btn btn-outline">
+              Book a 5-min demo
+            </a>
+          </div>
+        </div>
+        <div className="flex-1">
+          <Image
+            src="/window.svg"
+            alt="Posty idea list screenshot"
+            width={600}
+            height={400}
+            className="w-full max-w-md mx-auto"
+          />
+        </div>
+      </section>
     </div>
   )
 }
