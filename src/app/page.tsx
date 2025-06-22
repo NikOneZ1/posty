@@ -133,6 +133,30 @@ export default function HomePage() {
 
         <PricingSection />
         <CTABanner />
+
+        <footer className="container mx-auto px-4 py-8 text-center text-sm text-base-content/70 space-y-1">
+          <div>
+            <span className="font-semibold text-base-content">Company:</span>{" "}
+            <Link href="https://twitter.com" className="link link-neutral" target="_blank" rel="noopener noreferrer">
+              Twitter
+            </Link>{" "}
+            &middot;{" "}
+            <Link href="https://t.me" className="link link-neutral" target="_blank" rel="noopener noreferrer">
+              Telegram
+            </Link>
+          </div>
+          <div>
+            <span className="font-semibold text-base-content">Legal:</span>{" "}
+            <Link href="/privacy" className="link link-neutral">
+              Privacy
+            </Link>{" "}
+            &middot;{" "}
+            <Link href="/terms" className="link link-neutral">
+              Terms
+            </Link>
+          </div>
+          <div>© 2025 Posty, built in Ukraine</div>
+        </footer>
       </div>
   )
 }
