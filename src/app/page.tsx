@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
+import HeroScreenshot from "@/components/HeroScreenshot"
 
 export default function HomePage() {
   const { user, session } = useAuth()
@@ -37,6 +38,29 @@ export default function HomePage() {
               </div>
           </div>
         </nav>
+        <section className="bg-base-200">
+          <div className="container mx-auto px-4 py-20 flex flex-col items-center text-center gap-10 md:flex-row md:text-left md:gap-16">
+            <div className="max-w-xl space-y-6">
+              <h1 className="text-4xl font-bold leading-tight">
+                Create, refine &amp; schedule content in place.
+              </h1>
+              <p className="text-base-content/70">
+                Posty turns brainstorming into published posts across X, Telegram &amp; LinkedIn—powered by AI and built right inside your browser.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3">
+                <Link href="/login" className="btn btn-primary">
+                  Login
+                </Link>
+                <a href="#" className="btn btn-outline">
+                  Book a 5-min demo
+                </a>
+              </div>
+            </div>
+            <div className="w-full max-w-md">
+              <HeroScreenshot />
+            </div>
+          </div>
+        </section>
     </div>
   )
 }
