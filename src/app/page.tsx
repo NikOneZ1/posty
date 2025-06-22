@@ -107,7 +107,7 @@ export default function HomePage() {
               Rewrite Helpers
             </h3>
             <p className="text-base-content/70">
-              Quickly "Shorten," "Expand," "Add hook," or "Change tone" with 1-click actions. More coming soon.
+              Quickly &quot;Shorten,&quot; &quot;Expand,&quot; &quot;Add hook,&quot; or &quot;Change tone&quot; with 1-click actions. More coming soon.
             </p>
           </div>
         </div>
@@ -124,7 +124,7 @@ export default function HomePage() {
           <li className="ml-6">
             <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-content font-bold">2</span>
             <h3 className="text-xl font-semibold text-base-content mb-1">Polish with AI</h3>
-            <p className="text-base-content/70">Use smart rewrite actions like "Shorten," "Add hook," or "Change tone" to shape your message.</p>
+            <p className="text-base-content/70">Use smart rewrite actions like &quot;Shorten,&quot; &quot;Add hook,&quot; or &quot;Change tone&quot; to shape your message.</p>
           </li>
           <li className="ml-6">
             <span className="absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-content font-bold">3</span>
