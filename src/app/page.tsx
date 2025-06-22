@@ -75,6 +75,37 @@ export default function HomePage() {
           />
         </div>
       </section>
+      <section className="container mx-auto px-4 py-16">
+        <div className="grid gap-8 md:grid-cols-3">
+          <div className="card bg-base-100 border border-base-200 rounded-xl shadow-sm">
+            <div className="card-body items-center text-center space-y-2">
+              <div className="text-5xl">🧠</div>
+              <h3 className="text-xl font-semibold">Instant Idea Generation</h3>
+              <p className="text-base-content/70">
+                Run out of ideas? Posty suggests fresh, platform-specific content in seconds using AI.
+              </p>
+            </div>
+          </div>
+          <div className="card bg-base-100 border border-base-200 rounded-xl shadow-sm">
+            <div className="card-body items-center text-center space-y-2">
+              <div className="text-5xl">🪄</div>
+              <h3 className="text-xl font-semibold">AI that knows your voice</h3>
+              <p className="text-base-content/70">
+                Fine-tuned on your posts to keep tone consistent across platforms.
+              </p>
+            </div>
+          </div>
+          <div className="card bg-base-100 border border-base-200 rounded-xl shadow-sm">
+            <div className="card-body items-center text-center space-y-2">
+              <div className="text-5xl">✍️</div>
+              <h3 className="text-xl font-semibold">Rewrite Helpers</h3>
+              <p className="text-base-content/70">
+                Quickly “Shorten,” “Expand,” “Add hook,” or “Change tone” with 1-click actions. More coming soon.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   )
 }
