@@ -5,11 +5,11 @@ export default function Footer() {
     <footer className="container mx-auto px-4 py-16 text-center space-y-2 border-t border-base-300">
       <div>
         Company: {" "}
-        <Link href="https://twitter.com" className="link link-neutral" target="_blank" rel="noopener noreferrer">
+        <Link href="https://x.com/NikOne_Z1" className="link link-neutral" target="_blank" rel="noopener noreferrer">
           Twitter
         </Link>{" "}
         &middot; {" "}
-        <Link href="https://t.me" className="link link-neutral" target="_blank" rel="noopener noreferrer">
+        <Link href="https://t.me/nikita_verba" className="link link-neutral" target="_blank" rel="noopener noreferrer">
           Telegram
         </Link>
       </div>
