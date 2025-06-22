@@ -107,6 +107,33 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <section className="container mx-auto px-4 py-16">
+        <h2 className="text-3xl font-bold text-center mb-12">How it works</h2>
+        <ol className="relative border-s border-base-300 max-w-xl mx-auto space-y-10 ps-6">
+          <li className="relative">
+            <span className="absolute -start-3 top-1 w-6 h-6 rounded-full bg-primary"></span>
+            <h3 className="text-xl font-semibold text-base-content">Capture ideas</h3>
+            <p className="text-base-content/70">
+              Manually jot down a thought or generate platform-specific ideas with AI.
+            </p>
+          </li>
+          <li className="relative">
+            <span className="absolute -start-3 top-1 w-6 h-6 rounded-full bg-primary"></span>
+            <h3 className="text-xl font-semibold text-base-content">Polish with AI</h3>
+            <p className="text-base-content/70">
+              Use smart rewrite actions like “Shorten,” “Add hook,” or “Change tone” to shape your message.
+            </p>
+          </li>
+          <li className="relative">
+            <span className="absolute -start-3 top-1 w-6 h-6 rounded-full bg-primary"></span>
+            <h3 className="text-xl font-semibold text-base-content">Generate content</h3>
+            <p className="text-base-content/70">
+              Turn ideas into complete drafts tailored for Twitter, LinkedIn, or Instagram — ready to post.
+            </p>
+          </li>
+        </ol>
+      </section>
     </div>
   )
 }
