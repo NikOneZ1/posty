@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useAuth } from "@/contexts/AuthContext"
 import PricingSection from "@/components/PricingSection"
+import CTABanner from "@/components/CTABanner"
 
 export default function HomePage() {
   const { user, session } = useAuth()
@@ -130,7 +131,8 @@ export default function HomePage() {
         </ol>
       </section>
 
-      <PricingSection />
-    </div>
+        <PricingSection />
+        <CTABanner />
+      </div>
   )
 }
