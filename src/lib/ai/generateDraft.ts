@@ -25,7 +25,7 @@ export async function generateDraftFromIdea(
 You are a professional content writer creating a ${project.platform} post.
 
 Project Info:
-- Name: ${project.name}
+- Name (social media page name, could be a brand name, company name, person name if it's a personal account): ${project.name}
 - Niche: ${project.niche}
 - Description: ${project.description}
 - Tone: ${project.tone}

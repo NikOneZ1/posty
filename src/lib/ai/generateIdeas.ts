@@ -31,7 +31,7 @@ If you need to use the web search preview tool, use it to get the latest informa
 FINAL CHECK: Before submitting your response, remove any links, URLs, or citations that may have been automatically added. Your final output should be clean text only.
 
 project:
-  name: ${project.name}
+  name (social media page name, could be a brand name, company name, person name if it's a personal account): ${project.name}
   niche: ${project.niche}
   description: ${project.description}
   tone: ${project.tone}
