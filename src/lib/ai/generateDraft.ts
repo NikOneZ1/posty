@@ -37,11 +37,21 @@ ${platformGuidance}
 Important: Write the post in the same language as the idea provided above. If the idea is in English, write in English. If it's in Spanish, write in Spanish, and so on.
 
 Generate a single draft post based on this idea. Match the tone and platform style. The output should be ready to post as-is. Do not explain or wrap it in markdown or JSON — just return the final text.
+
+CRITICAL: Do NOT include any source links, URLs, or citations in your response. Even if you use web search to gather information, present the content as your own knowledge without referencing sources. Do not add any links like [wikipedia.org] or [reuters.com] or any other website references.
+
+If you need to use the web search preview tool, use it to get the latest information for the post to get data like news, statistics, etc., but present the information naturally without citing sources.
+
+FINAL CHECK: Before submitting your response, remove any links, URLs, or citations that may have been automatically added. Your final output should be clean text only.
 `;
 
   const response = await openai.responses.create({
     model: "gpt-4.1", 
-    instructions: "You generate platform-native content based on a one-line idea and project context.",
+    tools: [{
+      type: "web_search_preview",
+      search_context_size: "low",
+    }],
+    instructions: "You generate platform-native content based on a one-line idea and project context. Never include source links or citations in your output.",
     input: prompt,
   });
 
