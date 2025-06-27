@@ -73,7 +73,7 @@ export default function HomePage() {
             <Link href={user && session ? "/dashboard" : "/login"} className="btn btn-primary px-6">
               Start Creating
             </Link>
-            <Link href="#" className="btn btn-outline px-6">
+            <Link href="https://calendly.com/nikita-verba18052004/30min" className="btn btn-outline px-6">
               Book a 5-min demo
             </Link>
           </div>
