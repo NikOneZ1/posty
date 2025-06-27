@@ -18,8 +18,16 @@ export default function HomePage() {
             <div className="navbar-start items-center justify-between max-md:w-full">
               <Link
                 href="/dashboard"
-                className="link text-base-content link-neutral text-xl font-bold no-underline"
+                className="link text-base-content link-neutral text-xl font-bold no-underline flex items-center gap-2"
               >
+                <Image
+                  src="/posty_logo.svg"
+                  alt="Posty Logo"
+                  width={50}
+                  height={50}
+                  className="w-12 h-12"
+                  priority
+                />
                 Posty
               </Link>
               <div className="md:hidden">
