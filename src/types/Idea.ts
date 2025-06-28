@@ -4,3 +4,7 @@ export interface Idea {
   status: 'new' | 'content_generated' | 'ready' | 'posted' | 'archived'
 }
 
+export interface IdeaLight {
+  idea_text: string
+  status: 'new' | 'content_generated' | 'ready' | 'posted' | 'archived'
+}

@@ -1,3 +1,4 @@
+import { IdeaLight } from "@/types/Idea";
 import { Project } from "@/types/Project";
 import OpenAI from "openai";
 
@@ -19,25 +20,22 @@ const ideaSchema = {
 
 export async function generateIdeas(
   project: Project,
-  previousIdeas: string[]
+  previousIdeas: IdeaLight[]
 ) {
   const prompt = `
-Generate 5 **new one-line content ideas** for the following project.
-Each idea must match the tone and fit the target platform.
-Do NOT repeat or closely paraphrase any idea from the "previousIdeas" list.
-Return a valid JSON object with a single key "ideas" as a string array.
-CRITICAL: Do NOT include any source links, URLs, or citations in your response. Even if you use web search to gather information, present the content as your own knowledge without referencing sources. Do not add any links like [wikipedia.org] or [reuters.com] or any other website references.
-If you need to use the web search preview tool, use it to get the latest information for the post to get data like news, statistics, etc., but present the information naturally without citing sources.
-FINAL CHECK: Before submitting your response, remove any links, URLs, or citations that may have been automatically added. Your final output should be clean text only.
+Generate 5 new one-line content ideas for this project. Each idea must match the tone and fit the target platform.
+Do NOT repeat or closely paraphrase any idea from previousIdeas. Consider idea status - archived ideas are not relevant.
+Return valid JSON: {"ideas": ["idea1", "idea2", ...]}
+CRITICAL: No source links, URLs, or citations. Present information as your own knowledge without referencing sources.
 
-project:
+Project:
   name (social media page name, could be a brand name, company name, person name if it's a personal account): ${project.name}
   niche: ${project.niche}
   description: ${project.description}
   tone: ${project.tone}
   platform: ${project.platform}
 
-previousIdeas: ${JSON.stringify(previousIdeas)}
+Previous ideas: ${JSON.stringify(previousIdeas)}
 `;
 
   const response = await openai.responses.create({

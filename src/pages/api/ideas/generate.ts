@@ -42,9 +42,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ error: "Project not found" })
   }
 
+  const { data: ideas, error: ideasError } = await supabase
+    .from("ideas")
+    .select("idea_text, status")
+    .eq("project_id", project_id)
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(10)
+  if (ideasError) {
+    return res.status(500).json({ error: "Failed to fetch ideas from database" })
+  }
+
   let ideasGenerated: string[] = []
   try {
-    ideasGenerated = await generateIdeas(project, [])
+    ideasGenerated = await generateIdeas(project, ideas)
   } catch (err) {
     console.error(err)
     return res.status(500).json({ error: "Failed to generate ideas from OpenAI" })
