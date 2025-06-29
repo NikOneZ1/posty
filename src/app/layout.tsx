@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Posty",
   description: "A modern social media platform",
+  icons: {
+    icon: '/posty_logo.svg',
+    shortcut: '/posty_logo.svg',
+    apple: '/posty_logo.svg',
+  },
 };
 
 export default function RootLayout({
