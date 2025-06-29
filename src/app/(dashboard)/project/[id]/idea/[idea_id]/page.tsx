@@ -38,6 +38,7 @@ export default function IdeaContentPage() {
     | "tone_educational"
     | null
   >(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const fetchIdea = async () => {
@@ -62,7 +63,7 @@ export default function IdeaContentPage() {
 
         const { data, error } = await supabase
           .from('ideas')
-          .select('id, idea_text, status, projects!inner(platform)')
+          .select('id, idea_text, status, image_url, projects!inner(platform)')
           .eq('id', ideaId)
           .eq('project_id', projectId)
           .eq('user_id', session.user.id)
@@ -460,6 +461,58 @@ export default function IdeaContentPage() {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!idea) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      const accessToken = session?.access_token;
+      if (sessionError || !accessToken) {
+        toast.error('You must be signed in to upload an image.');
+        return;
+      }
+
+      const path = `${idea.id}/${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('idea-images')
+        .upload(path, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('idea-images').getPublicUrl(path);
+
+      const response = await fetch('/api/ideas/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({ idea_id: idea.id, image_url: publicUrl }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update idea');
+      }
+
+      setIdea({ ...idea, image_url: publicUrl });
+      toast.success('✅ Image uploaded!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image.');
+    } finally {
+      setIsUploading(false);
+      e.target.value = '';
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto max-w-3xl py-20 flex items-center justify-center">
@@ -696,6 +749,22 @@ export default function IdeaContentPage() {
                 </div>
             </div>
           </div>
+        </div>
+      )}
+      {idea && (
+        <div className="mt-8 space-y-4">
+          {idea.image_url && (
+            <img src={idea.image_url} alt="Idea" className="max-w-full rounded-lg" />
+          )}
+          <label className="btn">
+            {isUploading ? 'Uploading...' : 'Upload Image'}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageUpload}
+            />
+          </label>
         </div>
       )}
     </div>
