@@ -39,6 +39,7 @@ export default function IdeaContentPage() {
   const [rewriteAction, setRewriteAction] = useState<RewriteActionState | null>(
     null,
   );
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const fetchIdea = async () => {
@@ -63,7 +64,7 @@ export default function IdeaContentPage() {
 
         const { data, error } = await supabase
           .from('ideas')
-          .select('id, idea_text, status, projects!inner(platform)')
+          .select('id, idea_text, status, image_url, projects!inner(platform)')
           .eq('id', ideaId)
           .eq('project_id', projectId)
           .eq('user_id', session.user.id)
@@ -254,6 +255,41 @@ export default function IdeaContentPage() {
       toast.error('Failed to update status. Please try again.');
     } finally {
       setStatusUpdating(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!idea) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error || !session) {
+        toast.error('You must be signed in to upload images.');
+        return;
+      }
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${idea.id}/${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('idea-images')
+        .upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from('idea-images').getPublicUrl(filePath);
+      const imageUrl = data.publicUrl;
+      await IdeasService.update({
+        ideaId: idea.id,
+        imageUrl,
+        accessToken: session.access_token,
+      });
+      setIdea({ ...idea, image_url: imageUrl });
+      toast.success('✅ Image uploaded!');
+    } catch (err) {
+      console.error('Error uploading image:', err);
+      toast.error('Failed to upload image.');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -489,6 +525,25 @@ export default function IdeaContentPage() {
                         </li>
                       </ul>
                     </div>
+                  )}
+                </div>
+                {idea?.image_url && (
+                  <img
+                    src={idea.image_url}
+                    alt="Idea"
+                    className="max-w-full rounded-lg mt-4"
+                  />
+                )}
+                <div className="mt-4 flex items-center gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploading || !idea}
+                    className="file-input file-input-bordered file-input-sm"
+                  />
+                  {uploading && (
+                    <span className="loading loading-spinner loading-sm" />
                   )}
                 </div>
             </div>

@@ -31,15 +31,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { idea_id, idea_text, status } = await request.json();
+    const { idea_id, idea_text, status, image_url } = await request.json();
 
-    if (!idea_id || (!idea_text && !status)) {
+    if (!idea_id || (!idea_text && !status && !image_url)) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const updates: Record<string, unknown> = {};
     if (idea_text) updates.idea_text = idea_text;
     if (status) updates.status = status;
+    if (image_url) updates.image_url = image_url;
 
     const { error } = await supabase
       .from('ideas')
