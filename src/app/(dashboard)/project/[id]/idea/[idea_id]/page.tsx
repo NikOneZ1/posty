@@ -40,6 +40,7 @@ export default function IdeaContentPage() {
     null,
   );
   const [uploading, setUploading] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -291,6 +292,32 @@ export default function IdeaContentPage() {
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleGenerateImage = async () => {
+    if (!idea) return;
+    setGeneratingImage(true);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        toast.error('You must be signed in to generate images.');
+        return;
+      }
+      const { imageUrl } = await IdeasService.generateImage({
+        ideaId: idea.id,
+        ideaText: idea.idea_text,
+        content: generatedContent,
+        projectId: params?.id as string,
+        accessToken,
+      });
+      setIdea({ ...idea, image_url: imageUrl });
+      toast.success('✅ Image generated!');
+    } catch (error) {
+      console.error('Error generating image:', error);
+      toast.error('Failed to generate image.');
+    } finally {
+      setGeneratingImage(false);
     }
   };
 
@@ -548,6 +575,13 @@ export default function IdeaContentPage() {
               disabled={uploading}
             >
               {uploading ? 'Uploading...' : idea.image_url ? 'Change Image' : 'Upload Image'}
+            </button>
+            <button
+              className="btn btn-primary w-full"
+              onClick={handleGenerateImage}
+              disabled={generatingImage}
+            >
+              {generatingImage ? 'Generating...' : idea.image_url ? 'Regenerate Image' : 'Generate Image'}
             </button>
           </div>
         )}
