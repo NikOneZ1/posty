@@ -40,6 +40,7 @@ export default function IdeaContentPage() {
     null,
   );
   const [uploading, setUploading] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -291,6 +292,29 @@ export default function IdeaContentPage() {
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleGenerateImage = async () => {
+    if (!idea) return;
+    setIsGeneratingImage(true);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        toast.error('You must be signed in to generate images.');
+        return;
+      }
+      const { image_url } = await IdeasService.generateImage({
+        ideaId: idea.id,
+        accessToken,
+      });
+      setIdea({ ...idea, image_url });
+      toast.success('✅ Image generated!');
+    } catch (error) {
+      console.error('Error generating image:', error);
+      toast.error('Failed to generate image.');
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
 
@@ -548,6 +572,13 @@ export default function IdeaContentPage() {
               disabled={uploading}
             >
               {uploading ? 'Uploading...' : idea.image_url ? 'Change Image' : 'Upload Image'}
+            </button>
+            <button
+              className="btn btn-primary w-full"
+              onClick={handleGenerateImage}
+              disabled={isGeneratingImage}
+            >
+              {isGeneratingImage ? 'Generating...' : idea.image_url ? 'Regenerate Image' : 'Generate Image'}
             </button>
           </div>
         )}
