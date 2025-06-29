@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
@@ -25,6 +26,7 @@ export default function IdeaContentPage() {
   const [rewriteMenuOpen, setRewriteMenuOpen] = useState(false);
   const [toneMenuOpen, setToneMenuOpen] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
   const [rewriteAction, setRewriteAction] = useState<
     | "shorten"
@@ -62,7 +64,7 @@ export default function IdeaContentPage() {
 
         const { data, error } = await supabase
           .from('ideas')
-          .select('id, idea_text, status, projects!inner(platform)')
+          .select('id, idea_text, status, image_url, projects!inner(platform)')
           .eq('id', ideaId)
           .eq('project_id', projectId)
           .eq('user_id', session.user.id)
@@ -460,6 +462,52 @@ export default function IdeaContentPage() {
     }
   };
 
+  const handleImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    if (!idea) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImage(true);
+    try {
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        toast.error('You must be signed in to upload images.');
+        return;
+      }
+
+      const ext = file.name.split('.').pop();
+      const path = `${idea.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('idea-images')
+        .upload(path, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('idea-images').getPublicUrl(path);
+
+      const { error: updateError } = await supabase
+        .from('ideas')
+        .update({ image_url: publicUrl })
+        .eq('id', idea.id)
+        .eq('user_id', session.user.id);
+      if (updateError) throw updateError;
+
+      setIdea({ ...idea, image_url: publicUrl });
+      toast.success('Image uploaded');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto max-w-3xl py-20 flex items-center justify-center">
@@ -696,6 +744,26 @@ export default function IdeaContentPage() {
                 </div>
             </div>
           </div>
+          {idea && (
+            <div className="mt-4">
+              {idea.image_url && (
+                <Image
+                  src={idea.image_url}
+                  alt="Idea image"
+                  width={600}
+                  height={400}
+                  className="w-full max-h-96 object-contain rounded-lg mb-2"
+                />
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="file-input file-input-bordered w-full"
+                disabled={uploadingImage}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>
