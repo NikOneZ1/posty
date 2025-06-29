@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -39,6 +39,7 @@ export default function IdeaContentPage() {
   const [rewriteAction, setRewriteAction] = useState<RewriteActionState | null>(
     null,
   );
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     const fetchIdea = async () => {
@@ -63,7 +64,7 @@ export default function IdeaContentPage() {
 
         const { data, error } = await supabase
           .from('ideas')
-          .select('id, idea_text, status, projects!inner(platform)')
+          .select('id, idea_text, status, image_url, projects!inner(platform)')
           .eq('id', ideaId)
           .eq('project_id', projectId)
           .eq('user_id', session.user.id)
@@ -254,6 +255,40 @@ export default function IdeaContentPage() {
       toast.error('Failed to update status. Please try again.');
     } finally {
       setStatusUpdating(false);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !idea) return;
+    setUploadingImage(true);
+    try {
+      const filePath = `${idea.id}/${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage
+        .from('idea-images')
+        .upload(filePath, file, { upsert: true });
+      if (error) throw error;
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('idea-images').getPublicUrl(filePath);
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        toast.error('You must be signed in to upload an image.');
+        return;
+      }
+      await IdeasService.update({
+        ideaId: idea.id,
+        imageUrl: publicUrl,
+        accessToken,
+      });
+      setIdea({ ...idea, image_url: publicUrl });
+      toast.success('✅ Image uploaded!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image.');
+    } finally {
+      setUploadingImage(false);
+      e.target.value = '';
     }
   };
 
@@ -492,9 +527,32 @@ export default function IdeaContentPage() {
                   )}
                 </div>
             </div>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
+          {idea && (
+            <div className="mt-4 space-y-2">
+              {idea.image_url && (
+                <img
+                  src={idea.image_url}
+                  alt="Idea"
+                  className="max-w-full rounded-xl mx-auto"
+                />
+              )}
+              <div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploadingImage}
+                  className="file-input file-input-bordered w-full"
+                />
+                {uploadingImage && (
+                  <span className="ml-2 text-sm">Uploading...</span>
+                )}
+              </div>
+            </div>
+          )}
+        )}
+      </div>
+    );
 }
