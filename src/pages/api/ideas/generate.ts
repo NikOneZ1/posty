@@ -82,10 +82,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Return ideas
   return res.status(200).json({
-    ideas: insertedIdeas.map((idea: { id: string; idea_text: string; status: string }) => ({
+    ideas: insertedIdeas.map((idea: { id: string; idea_text: string; status: string; image_url: string | null }) => ({
       id: idea.id,
       idea_text: idea.idea_text,
       status: idea.status,
+      image_url: idea.image_url,
       created_at: new Date().toISOString(),
     })),
   })

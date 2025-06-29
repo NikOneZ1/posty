@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabaseClient"
 export async function getIdeasForProject(project_id: string, user_id: string): Promise<Idea[]> {
   const { data, error } = await supabase
     .from("ideas")
-    .select("id, idea_text, status")
+    .select("id, idea_text, status, image_url")
     .eq("project_id", project_id)
     .eq("user_id", user_id)
     .order("created_at", { ascending: false })
