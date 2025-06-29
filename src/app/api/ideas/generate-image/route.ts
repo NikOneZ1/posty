@@ -48,7 +48,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    const imageBuffer = await generateImageFromIdea(idea.idea_text, project);
+    const { data: draft, error: draftError } = await supabase
+      .from('drafts')
+      .select('*')
+      .eq('idea_id', idea_id)
+      .eq('user_id', user.id)
+      .single();
+    if (draftError || !draft) {
+      return NextResponse.json({ error: 'Draft not found' }, { status: 404 });
+    }
+
+    const imageBuffer = await generateImageFromIdea(draft.content, project);
 
     const filePath = `${idea_id}/${Date.now()}.png`;
     const { error: uploadError } = await supabase.storage
