@@ -17,6 +17,13 @@ export interface GenerateIdeasParams {
   accessToken: string
 }
 
+export interface UpdateIdeaParams {
+  ideaId: string
+  ideaText?: string
+  status?: Idea['status']
+  accessToken: string
+}
+
 export class IdeasService {
   static async getForProject(projectId: string, userId: string): Promise<Idea[]> {
     const supabase = getSupabaseClient()
@@ -58,4 +65,12 @@ export class IdeasService {
     })
     return data.ideas
   }
-} 
+
+  static async update({ ideaId, ideaText, status, accessToken }: UpdateIdeaParams): Promise<void> {
+    await fetchApi("/api/ideas/update", {
+      method: "POST",
+      body: { idea_id: ideaId, idea_text: ideaText, status },
+      accessToken,
+    })
+  }
+}

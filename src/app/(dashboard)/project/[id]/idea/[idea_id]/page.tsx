@@ -7,7 +7,17 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabaseClient';
 import { Idea } from '@/types/Idea';
 import { getDraft, saveDraft } from '@/services/drafts';
+import { IdeasService } from '@/services/ideas';
+import { generateContent, rewriteContent, RewriteAction } from '@/services/content';
 import { CopyButton } from '@/components/ui/CopyButton';
+
+type RewriteActionState =
+  | RewriteAction
+  | 'tone_professional'
+  | 'tone_empathetic'
+  | 'tone_casual'
+  | 'tone_neutral'
+  | 'tone_educational';
 
 export default function IdeaContentPage() {
   const params = useParams();
@@ -26,18 +36,9 @@ export default function IdeaContentPage() {
   const [toneMenuOpen, setToneMenuOpen] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
-  const [rewriteAction, setRewriteAction] = useState<
-    | "shorten"
-    | "expand"
-    | "fix"
-    | "custom"
-    | "tone_professional"
-    | "tone_empathetic"
-    | "tone_casual"
-    | "tone_neutral"
-    | "tone_educational"
-    | null
-  >(null);
+  const [rewriteAction, setRewriteAction] = useState<RewriteActionState | null>(
+    null,
+  );
 
   useEffect(() => {
     const fetchIdea = async () => {
@@ -88,40 +89,67 @@ export default function IdeaContentPage() {
     fetchIdea();
   }, [params?.id, params?.idea_id]);
 
+  const getAccessToken = async () => {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+    if (error || !session?.access_token) return null;
+    return session.access_token;
+  };
+
+  const performRewrite = async (
+    action: RewriteAction,
+    opts: { prompt?: string; uiAction?: string; success?: string } = {},
+  ) => {
+    if (!generatedContent) return;
+    setRewriteAction((opts.uiAction || action) as RewriteActionState);
+    setIsRewriting(true);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        toast.error('You must be signed in to rewrite content.');
+        return;
+      }
+      const { text } = await rewriteContent({
+        text: generatedContent,
+        action,
+        prompt: opts.prompt,
+        accessToken,
+      });
+      setGeneratedContent(text);
+      if (opts.success) toast.success(opts.success);
+      else toast.success('✅ Content updated!');
+      if (action === 'custom') setCustomPrompt('');
+    } catch (error) {
+      console.error('Error rewriting content:', error);
+      toast.error('Failed to rewrite content.');
+    } finally {
+      setIsRewriting(false);
+      setRewriteAction(null);
+      setRewriteMenuOpen(false);
+      setToneMenuOpen(false);
+    }
+  };
+
   const handleGenerate = async () => {
     if (!idea) return;
     setIsGenerating(true);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (sessionError || !accessToken) {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
         toast.error('You must be signed in to generate content.');
-        setIsGenerating(false);
         return;
       }
-      const response = await fetch('/api/content/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          idea_text: idea.idea_text,
-          project_id: params?.id,
-          regenerate: !!generatedContent,
-          platform: project?.platform || 'twitter',
-        }),
+      const { content } = await generateContent({
+        ideaText: idea.idea_text,
+        projectId: params?.id as string,
+        regenerate: !!generatedContent,
+        platform: project?.platform || 'twitter',
+        accessToken,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate content');
-      }
-
-      const data = await response.json();
-      setGeneratedContent(data.content);
-      // Auto-save draft after generation
-      await saveDraft(idea.id, data.content, accessToken);
+      setGeneratedContent(content);
+      await saveDraft(idea.id, content, accessToken);
       toast.success('✅ Draft updated!');
     } catch (error) {
       console.error('Error generating content:', error);
@@ -135,30 +163,12 @@ export default function IdeaContentPage() {
     if (!idea || !generatedContent) return;
     setIsSaving(true);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (sessionError || !accessToken) {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
         toast.error('You must be signed in to save content.');
         return;
       }
-
-      const response = await fetch('/api/drafts/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          idea_id: idea.id,
-          content: generatedContent,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save content');
-      }
-
+      await saveDraft(idea.id, generatedContent, accessToken);
       toast.success('✅ Draft saved successfully!');
     } catch (error) {
       console.error('Error saving content:', error);
@@ -168,248 +178,48 @@ export default function IdeaContentPage() {
     }
   };
 
-  const handleShorten = async () => {
-    if (!generatedContent) return;
-    setRewriteAction('shorten');
-    setIsRewriting(true);
-    try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (sessionError || !accessToken) {
-        toast.error('You must be signed in to rewrite content.');
-        return;
-      }
-
-      const response = await fetch('/api/content/rewrite', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ text: generatedContent, action: 'shorten' }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to rewrite content');
-      }
-
-      const data = await response.json();
-      setGeneratedContent(data.text);
-      toast.success('✅ Content shortened!');
-    } catch (error) {
-      console.error('Error rewriting content:', error);
-      toast.error('Failed to rewrite content.');
-    } finally {
-      setIsRewriting(false);
-      setRewriteAction(null);
-      setRewriteMenuOpen(false);
-    }
-  };
+  const handleShorten = () =>
+    performRewrite('shorten', { success: '✅ Content shortened!' });
 
   const handleExpand = async () => {
-    if (!generatedContent) return;
-    setRewriteAction('expand');
-    setIsRewriting(true);
-    try {
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (sessionError || !accessToken) {
-        toast.error('You must be signed in to rewrite content.');
-        return;
-      }
-
-      const response = await fetch('/api/content/rewrite', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ text: generatedContent, action: 'expand' }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to rewrite content');
-      }
-
-      const data = await response.json();
-      setGeneratedContent(data.text);
-      toast.success('✅ Content expanded!');
-    } catch (error) {
-      console.error('Error rewriting content:', error);
-      toast.error('Failed to rewrite content.');
-    } finally {
-      setIsRewriting(false);
-      setRewriteAction(null);
-      setRewriteMenuOpen(false);
-    }
+    performRewrite('expand', { success: '✅ Content expanded!' });
   };
 
   const handleFix = async () => {
-    if (!generatedContent) return;
-    setRewriteAction('fix');
-    setIsRewriting(true);
-    try {
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (sessionError || !accessToken) {
-        toast.error('You must be signed in to rewrite content.');
-        return;
-      }
-
-      const response = await fetch('/api/content/rewrite', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ text: generatedContent, action: 'fix' }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to rewrite content');
-      }
-
-      const data = await response.json();
-      setGeneratedContent(data.text);
-      toast.success('✅ Grammar fixed!');
-    } catch (error) {
-      console.error('Error rewriting content:', error);
-      toast.error('Failed to rewrite content.');
-    } finally {
-      setIsRewriting(false);
-      setRewriteAction(null);
-      setRewriteMenuOpen(false);
-    }
+    performRewrite('fix', { success: '✅ Grammar fixed!' });
   };
 
   const handleCustomRewrite = async () => {
-    if (!generatedContent || !customPrompt.trim()) return;
-    setRewriteAction('custom');
-    setIsRewriting(true);
-    try {
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (sessionError || !accessToken) {
-        toast.error('You must be signed in to rewrite content.');
-        return;
-      }
-
-      const response = await fetch('/api/content/rewrite', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          text: generatedContent,
-          action: 'custom',
-          prompt: customPrompt.trim(),
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to rewrite content');
-      }
-
-      const data = await response.json();
-      setGeneratedContent(data.text);
-      toast.success('✅ Content updated!');
-      setCustomPrompt('');
-    } catch (error) {
-      console.error('Error rewriting content:', error);
-      toast.error('Failed to rewrite content.');
-    } finally {
-      setIsRewriting(false);
-      setRewriteAction(null);
-      setRewriteMenuOpen(false);
-    }
+    if (!customPrompt.trim()) return;
+    performRewrite('custom', {
+      prompt: customPrompt.trim(),
+      success: '✅ Content updated!',
+    });
   };
 
-  const handleTone = async (
+  const handleTone = (
     tone: 'professional' | 'empathetic' | 'casual' | 'neutral' | 'educational',
   ) => {
-    if (!generatedContent) return;
-    setRewriteAction(`tone_${tone}` as const);
-    setIsRewriting(true);
-    try {
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (sessionError || !accessToken) {
-        toast.error('You must be signed in to rewrite content.');
-        return;
-      }
-
-      const response = await fetch('/api/content/rewrite', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({ text: generatedContent, action: tone }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to rewrite content');
-      }
-
-      const data = await response.json();
-      setGeneratedContent(data.text);
-      toast.success(`✅ Tone updated to ${tone.charAt(0).toUpperCase() + tone.slice(1)}!`);
-    } catch (error) {
-      console.error('Error rewriting content:', error);
-      toast.error('Failed to rewrite content.');
-    } finally {
-      setIsRewriting(false);
-      setRewriteAction(null);
-      setRewriteMenuOpen(false);
-      setToneMenuOpen(false);
-    }
+    performRewrite(tone as RewriteAction, {
+      uiAction: `tone_${tone}`,
+      success: `✅ Tone updated to ${tone.charAt(0).toUpperCase() + tone.slice(1)}!`,
+    });
   };
 
   const handleUpdateIdea = async () => {
     if (!idea || !editedText) return;
     setIsUpdating(true);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (sessionError || !accessToken) {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
         toast.error('You must be signed in to update the idea.');
         return;
       }
-
-      const response = await fetch('/api/ideas/update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          idea_id: idea.id,
-          idea_text: editedText,
-        }),
+      await IdeasService.update({
+        ideaId: idea.id,
+        ideaText: editedText,
+        accessToken,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update idea');
-      }
 
       setIdea({ ...idea, idea_text: editedText });
       setIsEditing(false);
@@ -426,29 +236,16 @@ export default function IdeaContentPage() {
     if (!idea) return;
     setStatusUpdating(true);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      const accessToken = session?.access_token;
-      if (sessionError || !accessToken) {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
         toast.error('You must be signed in to update the idea.');
         return;
       }
-
-      const response = await fetch('/api/ideas/update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify({
-          idea_id: idea.id,
-          status: newStatus,
-        }),
+      await IdeasService.update({
+        ideaId: idea.id,
+        status: newStatus,
+        accessToken,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update idea');
-      }
 
       setIdea({ ...idea, status: newStatus });
       toast.success('✅ Status updated!');
