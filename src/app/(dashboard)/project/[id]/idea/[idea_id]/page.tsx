@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, ChangeEvent } from 'react';
 import { useParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -39,6 +39,8 @@ export default function IdeaContentPage() {
   const [rewriteAction, setRewriteAction] = useState<RewriteActionState | null>(
     null,
   );
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchIdea = async () => {
@@ -63,14 +65,19 @@ export default function IdeaContentPage() {
 
         const { data, error } = await supabase
           .from('ideas')
-          .select('id, idea_text, status, projects!inner(platform)')
+          .select('id, idea_text, status, image_url, projects!inner(platform)')
           .eq('id', ideaId)
           .eq('project_id', projectId)
           .eq('user_id', session.user.id)
           .single();
 
         if (error || !data) throw error;
-        setIdea(data);
+        setIdea({
+          id: data.id,
+          idea_text: data.idea_text,
+          status: data.status,
+          image_url: data.image_url ?? undefined,
+        });
         setEditedText(data.idea_text);
         setProject(data.projects[0]);
         // Fetch draft for this idea
@@ -254,6 +261,36 @@ export default function IdeaContentPage() {
       toast.error('Failed to update status. Please try again.');
     } finally {
       setStatusUpdating(false);
+    }
+  };
+
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !idea) return;
+    setUploading(true);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        toast.error('You must be signed in to upload images.');
+        return;
+      }
+      const ext = file.name.split('.').pop();
+      const filePath = `${idea.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('idea-images')
+        .upload(filePath, file);
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from('idea-images').getPublicUrl(filePath);
+      const imageUrl = data.publicUrl;
+      await IdeasService.update({ ideaId: idea.id, imageUrl, accessToken });
+      setIdea({ ...idea, image_url: imageUrl });
+      toast.success('✅ Image uploaded!');
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast.error('Failed to upload image.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -493,6 +530,27 @@ export default function IdeaContentPage() {
                 </div>
             </div>
           </div>
+        {idea && (
+          <div className="mt-4 space-y-2">
+            {idea.image_url && (
+              <img src={idea.image_url} alt="Idea" className="w-full rounded-lg" />
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleImageUpload}
+            />
+            <button
+              className="btn btn-secondary w-full"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? 'Uploading...' : idea.image_url ? 'Change Image' : 'Upload Image'}
+            </button>
+          </div>
+        )}
         </div>
       )}
     </div>
