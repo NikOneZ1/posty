@@ -25,6 +25,11 @@ export interface UpdateIdeaParams {
   accessToken: string
 }
 
+export interface GenerateIdeaImageParams {
+  ideaId: string
+  accessToken: string
+}
+
 export class IdeasService {
   static async getForProject(projectId: string, userId: string): Promise<Idea[]> {
     const supabase = getSupabaseClient()
@@ -71,6 +76,14 @@ export class IdeasService {
     await fetchApi("/api/ideas/update", {
       method: "POST",
       body: { idea_id: ideaId, idea_text: ideaText, status, image_url: imageUrl },
+      accessToken,
+    })
+  }
+
+  static async generateImage({ ideaId, accessToken }: GenerateIdeaImageParams): Promise<{ image_url: string }> {
+    return fetchApi<{ image_url: string }>("/api/ideas/generate-image", {
+      method: "POST",
+      body: { idea_id: ideaId },
       accessToken,
     })
   }
