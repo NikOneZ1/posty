@@ -40,6 +40,7 @@ export default function IdeaContentPage() {
     null,
   );
   const [uploading, setUploading] = useState(false);
+  const [imageGenerating, setImageGenerating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -294,6 +295,26 @@ export default function IdeaContentPage() {
     }
   };
 
+  const handleGenerateImage = async () => {
+    if (!idea) return;
+    setImageGenerating(true);
+    try {
+      const accessToken = await getAccessToken();
+      if (!accessToken) {
+        toast.error('You must be signed in to generate images.');
+        return;
+      }
+      const imageUrl = await IdeasService.generateImage({ ideaId: idea.id, accessToken });
+      setIdea({ ...idea, image_url: imageUrl });
+      toast.success('✅ Image generated!');
+    } catch (error) {
+      console.error('Error generating image:', error);
+      toast.error('Failed to generate image.');
+    } finally {
+      setImageGenerating(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto max-w-3xl py-20 flex items-center justify-center">
@@ -542,13 +563,22 @@ export default function IdeaContentPage() {
               className="hidden"
               onChange={handleImageUpload}
             />
-            <button
-              className="btn btn-secondary w-full"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-            >
-              {uploading ? 'Uploading...' : idea.image_url ? 'Change Image' : 'Upload Image'}
-            </button>
+            <div className="flex gap-2">
+              <button
+                className="btn btn-secondary flex-1"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                {uploading ? 'Uploading...' : idea.image_url ? 'Change Image' : 'Upload Image'}
+              </button>
+              <button
+                className="btn btn-primary flex-1"
+                onClick={handleGenerateImage}
+                disabled={imageGenerating}
+              >
+                {imageGenerating ? 'Generating...' : idea.image_url ? 'Regenerate Image' : 'Generate Image'}
+              </button>
+            </div>
           </div>
         )}
         </div>

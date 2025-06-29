@@ -74,4 +74,13 @@ export class IdeasService {
       accessToken,
     })
   }
+
+  static async generateImage({ ideaId, accessToken }: { ideaId: string; accessToken: string }): Promise<string> {
+    const data = await fetchApi<{ image_url: string }>("/api/image/generate", {
+      method: "POST",
+      body: { idea_id: ideaId },
+      accessToken,
+    })
+    return data.image_url
+  }
 }
