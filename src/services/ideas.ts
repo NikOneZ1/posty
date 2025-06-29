@@ -21,6 +21,7 @@ export interface UpdateIdeaParams {
   ideaId: string
   ideaText?: string
   status?: Idea['status']
+  imageUrl?: string
   accessToken: string
 }
 
@@ -66,10 +67,10 @@ export class IdeasService {
     return data.ideas
   }
 
-  static async update({ ideaId, ideaText, status, accessToken }: UpdateIdeaParams): Promise<void> {
+  static async update({ ideaId, ideaText, status, imageUrl, accessToken }: UpdateIdeaParams): Promise<void> {
     await fetchApi("/api/ideas/update", {
       method: "POST",
-      body: { idea_id: ideaId, idea_text: ideaText, status },
+      body: { idea_id: ideaId, idea_text: ideaText, status, image_url: imageUrl },
       accessToken,
     })
   }
