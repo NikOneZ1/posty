@@ -10,6 +10,7 @@ import { getDraft, saveDraft } from '@/services/drafts';
 import { IdeasService } from '@/services/ideas';
 import { generateContent, rewriteContent, RewriteAction } from '@/services/content';
 import { CopyButton } from '@/components/ui/CopyButton';
+import { Modal } from '@/components/ui/Modal';
 
 type RewriteActionState =
   | RewriteAction
@@ -28,7 +29,8 @@ export default function IdeaContentPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [draftLoading, setDraftLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'content' | 'image'>('content');
   const [editedText, setEditedText] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState(false);
@@ -335,227 +337,212 @@ export default function IdeaContentPage() {
         </h1>
         <div className="card bg-base-100 border border-base-200 rounded-xl shadow-sm mb-6">
           <div className="card-body p-6 space-y-4">
-          {isEditing ? (
-            <div className="space-y-4">
-              <textarea
-                value={editedText}
-                onChange={(e) => setEditedText(e.target.value)}
-                className="textarea textarea-bordered w-full min-h-32"
-                placeholder="Edit your idea here..."
-              />
-              <div className="flex gap-2">
-                <button
-                  className="btn btn-primary"
-                  onClick={handleUpdateIdea}
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Changes'
-                  )}
-                </button>
-                <button
-                  className="btn btn-ghost"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditedText(idea?.idea_text || '');
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
             <div className="flex justify-between items-start gap-4">
               <p className="text-lg flex-1 break-words">{idea?.idea_text || 'No idea found'}</p>
               <button
                 className="btn btn-outline btn-sm"
-                onClick={() => setIsEditing(true)}
+                onClick={() => setEditModalOpen(true)}
               >
                 Edit
               </button>
             </div>
-          )}
-          {idea && (
-            <div className="flex items-center gap-2">
-              <span className="font-medium">Status:</span>
-              <select
-                className="select select-sm"
-                value={idea.status}
-                onChange={(e) => handleStatusChange(e.target.value as Idea['status'])}
-                disabled={statusUpdating}
-              >
-                <option value="new">New</option>
-                <option value="content_generated">Content Generated</option>
-                <option value="ready">Ready</option>
-                <option value="posted">Posted</option>
-                <option value="archived">Archived</option>
-              </select>
-            </div>
-          )}
+            {idea && (
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Status:</span>
+                <select
+                  className="select select-sm"
+                  value={idea.status}
+                  onChange={(e) => handleStatusChange(e.target.value as Idea['status'])}
+                  disabled={statusUpdating}
+                >
+                  <option value="new">New</option>
+                  <option value="content_generated">Content Generated</option>
+                  <option value="ready">Ready</option>
+                  <option value="posted">Posted</option>
+                  <option value="archived">Archived</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="space-y-4">
-          <button
-            className="btn btn-primary w-full"
-            onClick={handleGenerate}
-            disabled={isGenerating || !idea}
+        <div className="tabs tabs-boxed w-full mb-6">
+          <a
+            className={`tab flex-1 ${activeTab === 'content' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('content')}
           >
-            {isGenerating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {generatedContent ? 'Regenerating...' : 'Generating...'}
-              </>
-            ) : (
-              generatedContent ? 'Regenerate Content' : 'Generate Content'
-            )}
-          </button>
+            Content
+          </a>
+          <a
+            className={`tab flex-1 ${activeTab === 'image' ? 'tab-active' : ''}`}
+            onClick={() => setActiveTab('image')}
+          >
+            Image
+          </a>
         </div>
-      </div>
 
-      {draftLoading ? (
-        <div className="mt-8 text-base-content/60">Loading draft...</div>
-      ) : generatedContent && (
-        <div className="mt-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <span className="icon-[tabler--edit] size-5"></span>
-              Generated Content:
-            </h2>
-            <div className="flex flex-wrap items-center gap-2">
+        {activeTab === 'content' && (
+          <>
+            <div className="space-y-4">
               <button
-                className="btn btn-primary"
-                onClick={handleSave}
-                disabled={isSaving}
+                className="btn btn-primary w-full"
+                onClick={handleGenerate}
+                disabled={isGenerating || !idea}
               >
-                {isSaving ? (
+                {isGenerating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
+                    {generatedContent ? 'Regenerating...' : 'Generating...'}
                   </>
                 ) : (
-                  'Save Changes'
+                  generatedContent ? 'Regenerate Content' : 'Generate Content'
                 )}
               </button>
-              <CopyButton text={generatedContent} className="btn" />
             </div>
-          </div>
-          <div className="card bg-base-100 border border-base-200 rounded-xl shadow-sm mb-4">
-            <div className="card-body p-6">
-                <textarea
-                  value={generatedContent}
-                  onChange={(e) => setGeneratedContent(e.target.value)}
-                  className="textarea textarea-bordered w-full min-h-[250px]"
-                  placeholder="Edit your content here..."
-                />
-                <div
-                  className="relative inline-block mt-2"
-                  tabIndex={0}
-                  onBlur={(e) => {
-                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                      setRewriteMenuOpen(false);
-                    }
-                  }}
-                >
-                  <button
-                    onClick={() => setRewriteMenuOpen((v) => !v)}
-                    className="btn btn-ghost btn-sm"
-                    aria-label="Rewrite options"
-                  >
-                    <span className="icon-[tabler--wand] size-4" />
-                  </button>
-                  {rewriteMenuOpen && (
-                    <div className="absolute z-10 bottom-full mb-1 w-56 bg-base-100 rounded-box shadow-md p-2 text-sm space-y-2">
-                      <input
-                        type="text"
-                        placeholder="write with ai or select from below"
-                        className="input input-bordered input-sm w-full"
-                        value={customPrompt}
-                        onChange={(e) => setCustomPrompt(e.target.value)}
-                      />
+
+            {draftLoading ? (
+              <div className="mt-8 text-base-content/60">Loading draft...</div>
+            ) : generatedContent && (
+              <div className="mt-8">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <span className="icon-[tabler--edit] size-5"></span>
+                    Generated Content:
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      className="btn btn-primary"
+                      onClick={handleSave}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Changes'
+                      )}
+                    </button>
+                    <CopyButton text={generatedContent} className="btn" />
+                  </div>
+                </div>
+                <div className="card bg-base-100 border border-base-200 rounded-xl shadow-sm mb-4">
+                  <div className="card-body p-6">
+                    <textarea
+                      value={generatedContent}
+                      onChange={(e) => setGeneratedContent(e.target.value)}
+                      className="textarea textarea-bordered w-full min-h-[250px]"
+                      placeholder="Edit your content here..."
+                    />
+                    <div
+                      className="relative inline-block mt-2"
+                      tabIndex={0}
+                      onBlur={(e) => {
+                        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                          setRewriteMenuOpen(false);
+                        }
+                      }}
+                    >
                       <button
-                        onClick={handleCustomRewrite}
-                        className="btn btn-primary btn-sm w-full"
-                        disabled={isRewriting}
+                        onClick={() => setRewriteMenuOpen((v) => !v)}
+                        className="btn btn-ghost btn-sm"
+                        aria-label="Rewrite options"
                       >
-                        {isRewriting && rewriteAction === 'custom' ? 'Rewriting...' : 'Rewrite'}
+                        <span className="icon-[tabler--wand] size-4" />
                       </button>
-                      <ul className="menu p-0">
-                        <li>
-                          <button onClick={handleShorten} disabled={isRewriting}>
-                            {isRewriting && rewriteAction === 'shorten' ? 'Shortening...' : 'Shorten'}
-                          </button>
-                        </li>
-                        <li>
-                          <button onClick={handleExpand} disabled={isRewriting}>
-                            {isRewriting && rewriteAction === 'expand' ? 'Expanding...' : 'Expand'}
-                          </button>
-                        </li>
-                        <li>
-                          <button onClick={handleFix} disabled={isRewriting}>
-                            {isRewriting && rewriteAction === 'fix' ? 'Fixing...' : 'Fix Grammar'}
-                          </button>
-                        </li>
-                        <li
-                          className="relative"
-                          tabIndex={0}
-                          onBlur={(e) => {
-                            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                              setToneMenuOpen(false);
-                            }
-                          }}
-                        >
+                      {rewriteMenuOpen && (
+                        <div className="absolute z-10 bottom-full mb-1 w-56 bg-base-100 rounded-box shadow-md p-2 text-sm space-y-2">
+                          <input
+                            type="text"
+                            placeholder="write with ai or select from below"
+                            className="input input-bordered input-sm w-full"
+                            value={customPrompt}
+                            onChange={(e) => setCustomPrompt(e.target.value)}
+                          />
                           <button
-                            onClick={() => setToneMenuOpen((v) => !v)}
-                            className="flex items-center justify-between w-full"
+                            onClick={handleCustomRewrite}
+                            className="btn btn-primary btn-sm w-full"
                             disabled={isRewriting}
                           >
-                            Change tone to...
-                            <span className="icon-[tabler--chevron-right] size-4" />
+                            {isRewriting && rewriteAction === 'custom' ? 'Rewriting...' : 'Rewrite'}
                           </button>
-                          {toneMenuOpen && (
-                            <ul className="absolute left-full top-0 ml-2 menu p-2 bg-base-100 rounded-box shadow-md w-40 text-sm">
-                              <li>
-                                <button onClick={() => handleTone('professional')} disabled={isRewriting}>
-                                  {isRewriting && rewriteAction === 'tone_professional' ? 'Changing...' : 'Professional'}
-                                </button>
-                              </li>
-                              <li>
-                                <button onClick={() => handleTone('empathetic')} disabled={isRewriting}>
-                                  {isRewriting && rewriteAction === 'tone_empathetic' ? 'Changing...' : 'Empathetic'}
-                                </button>
-                              </li>
-                              <li>
-                                <button onClick={() => handleTone('casual')} disabled={isRewriting}>
-                                  {isRewriting && rewriteAction === 'tone_casual' ? 'Changing...' : 'Casual'}
-                                </button>
-                              </li>
-                              <li>
-                                <button onClick={() => handleTone('neutral')} disabled={isRewriting}>
-                                  {isRewriting && rewriteAction === 'tone_neutral' ? 'Changing...' : 'Neutral'}
-                                </button>
-                              </li>
-                              <li>
-                                <button onClick={() => handleTone('educational')} disabled={isRewriting}>
-                                  {isRewriting && rewriteAction === 'tone_educational' ? 'Changing...' : 'Educational'}
-                                </button>
-                              </li>
-                            </ul>
-                          )}
-                        </li>
-                      </ul>
+                          <ul className="menu p-0">
+                            <li>
+                              <button onClick={handleShorten} disabled={isRewriting}>
+                                {isRewriting && rewriteAction === 'shorten' ? 'Shortening...' : 'Shorten'}
+                              </button>
+                            </li>
+                            <li>
+                              <button onClick={handleExpand} disabled={isRewriting}>
+                                {isRewriting && rewriteAction === 'expand' ? 'Expanding...' : 'Expand'}
+                              </button>
+                            </li>
+                            <li>
+                              <button onClick={handleFix} disabled={isRewriting}>
+                                {isRewriting && rewriteAction === 'fix' ? 'Fixing...' : 'Fix Grammar'}
+                              </button>
+                            </li>
+                            <li
+                              className="relative"
+                              tabIndex={0}
+                              onBlur={(e) => {
+                                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                                  setToneMenuOpen(false);
+                                }
+                              }}
+                            >
+                              <button
+                                onClick={() => setToneMenuOpen((v) => !v)}
+                                className="flex items-center justify-between w-full"
+                                disabled={isRewriting}
+                              >
+                                Change tone to...
+                                <span className="icon-[tabler--chevron-right] size-4" />
+                              </button>
+                              {toneMenuOpen && (
+                                <ul className="absolute left-full top-0 ml-2 menu p-2 bg-base-100 rounded-box shadow-md w-40 text-sm">
+                                  <li>
+                                    <button onClick={() => handleTone('professional')} disabled={isRewriting}>
+                                      {isRewriting && rewriteAction === 'tone_professional' ? 'Changing...' : 'Professional'}
+                                    </button>
+                                  </li>
+                                  <li>
+                                    <button onClick={() => handleTone('empathetic')} disabled={isRewriting}>
+                                      {isRewriting && rewriteAction === 'tone_empathetic' ? 'Changing...' : 'Empathetic'}
+                                    </button>
+                                  </li>
+                                  <li>
+                                    <button onClick={() => handleTone('casual')} disabled={isRewriting}>
+                                      {isRewriting && rewriteAction === 'tone_casual' ? 'Changing...' : 'Casual'}
+                                    </button>
+                                  </li>
+                                  <li>
+                                    <button onClick={() => handleTone('neutral')} disabled={isRewriting}>
+                                      {isRewriting && rewriteAction === 'tone_neutral' ? 'Changing...' : 'Neutral'}
+                                    </button>
+                                  </li>
+                                  <li>
+                                    <button onClick={() => handleTone('educational')} disabled={isRewriting}>
+                                      {isRewriting && rewriteAction === 'tone_educational' ? 'Changing...' : 'Educational'}
+                                    </button>
+                                  </li>
+                                </ul>
+                              )}
+                            </li>
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
-            </div>
-          </div>
-        {idea && (
-          <div className="mt-4 space-y-2">
+              </div>
+            )}
+          </>
+        )}
+
+        {activeTab === 'image' && idea && (
+          <div className="mt-8 space-y-4">
             {idea.image_url && (
               <img src={idea.image_url} alt="Idea" className="w-full rounded-lg" />
             )}
@@ -582,8 +569,43 @@ export default function IdeaContentPage() {
             </button>
           </div>
         )}
+      </div>
+
+      <Modal open={editModalOpen} onClose={() => setEditModalOpen(false)} title="Edit Idea">
+        <div className="space-y-4">
+          <textarea
+            value={editedText}
+            onChange={(e) => setEditedText(e.target.value)}
+            className="textarea textarea-bordered w-full min-h-32"
+            placeholder="Edit your idea here..."
+          />
+          <div className="flex justify-end gap-2">
+            <button
+              className="btn btn-primary"
+              onClick={handleUpdateIdea}
+              disabled={isUpdating}
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </button>
+            <button
+              className="btn btn-ghost"
+              onClick={() => {
+                setEditModalOpen(false);
+                setEditedText(idea?.idea_text || '');
+              }}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }
