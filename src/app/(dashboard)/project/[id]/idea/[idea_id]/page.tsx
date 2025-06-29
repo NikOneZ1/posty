@@ -10,6 +10,7 @@ import { getDraft, saveDraft } from '@/services/drafts';
 import { IdeasService } from '@/services/ideas';
 import { generateContent, rewriteContent, RewriteAction } from '@/services/content';
 import { CopyButton } from '@/components/ui/CopyButton';
+import { RewriteModal } from '@/components/projects/RewriteModal';
 
 type RewriteActionState =
   | RewriteAction
@@ -32,13 +33,12 @@ export default function IdeaContentPage() {
   const [editedText, setEditedText] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState(false);
-  const [rewriteMenuOpen, setRewriteMenuOpen] = useState(false);
-  const [toneMenuOpen, setToneMenuOpen] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
   const [rewriteAction, setRewriteAction] = useState<RewriteActionState | null>(
     null,
   );
+  const [isRewriteModalOpen, setIsRewriteModalOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -135,8 +135,6 @@ export default function IdeaContentPage() {
     } finally {
       setIsRewriting(false);
       setRewriteAction(null);
-      setRewriteMenuOpen(false);
-      setToneMenuOpen(false);
     }
   };
 
@@ -453,105 +451,13 @@ export default function IdeaContentPage() {
                   className="textarea textarea-bordered w-full min-h-[250px]"
                   placeholder="Edit your content here..."
                 />
-                <div
-                  className="relative inline-block mt-2"
-                  tabIndex={0}
-                  onBlur={(e) => {
-                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                      setRewriteMenuOpen(false);
-                    }
-                  }}
+                <button
+                  onClick={() => setIsRewriteModalOpen(true)}
+                  className="btn btn-ghost btn-sm mt-2"
                 >
-                  <button
-                    onClick={() => setRewriteMenuOpen((v) => !v)}
-                    className="btn btn-ghost btn-sm"
-                    aria-label="Rewrite options"
-                  >
-                    <span className="icon-[tabler--wand] size-4" />
-                  </button>
-                  {rewriteMenuOpen && (
-                    <div className="absolute z-10 bottom-full mb-1 w-56 bg-base-100 rounded-box shadow-md p-2 text-sm space-y-2">
-                      <input
-                        type="text"
-                        placeholder="write with ai or select from below"
-                        className="input input-bordered input-sm w-full"
-                        value={customPrompt}
-                        onChange={(e) => setCustomPrompt(e.target.value)}
-                      />
-                      <button
-                        onClick={handleCustomRewrite}
-                        className="btn btn-primary btn-sm w-full"
-                        disabled={isRewriting}
-                      >
-                        {isRewriting && rewriteAction === 'custom' ? 'Rewriting...' : 'Rewrite'}
-                      </button>
-                      <ul className="menu p-0">
-                        <li>
-                          <button onClick={handleShorten} disabled={isRewriting}>
-                            {isRewriting && rewriteAction === 'shorten' ? 'Shortening...' : 'Shorten'}
-                          </button>
-                        </li>
-                        <li>
-                          <button onClick={handleExpand} disabled={isRewriting}>
-                            {isRewriting && rewriteAction === 'expand' ? 'Expanding...' : 'Expand'}
-                          </button>
-                        </li>
-                        <li>
-                          <button onClick={handleFix} disabled={isRewriting}>
-                            {isRewriting && rewriteAction === 'fix' ? 'Fixing...' : 'Fix Grammar'}
-                          </button>
-                        </li>
-                        <li
-                          className="relative"
-                          tabIndex={0}
-                          onBlur={(e) => {
-                            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                              setToneMenuOpen(false);
-                            }
-                          }}
-                        >
-                          <button
-                            onClick={() => setToneMenuOpen((v) => !v)}
-                            className="flex items-center justify-between w-full"
-                            disabled={isRewriting}
-                          >
-                            Change tone to...
-                            <span className="icon-[tabler--chevron-right] size-4" />
-                          </button>
-                          {toneMenuOpen && (
-                            <ul className="absolute left-full top-0 ml-2 menu p-2 bg-base-100 rounded-box shadow-md w-40 text-sm">
-                              <li>
-                                <button onClick={() => handleTone('professional')} disabled={isRewriting}>
-                                  {isRewriting && rewriteAction === 'tone_professional' ? 'Changing...' : 'Professional'}
-                                </button>
-                              </li>
-                              <li>
-                                <button onClick={() => handleTone('empathetic')} disabled={isRewriting}>
-                                  {isRewriting && rewriteAction === 'tone_empathetic' ? 'Changing...' : 'Empathetic'}
-                                </button>
-                              </li>
-                              <li>
-                                <button onClick={() => handleTone('casual')} disabled={isRewriting}>
-                                  {isRewriting && rewriteAction === 'tone_casual' ? 'Changing...' : 'Casual'}
-                                </button>
-                              </li>
-                              <li>
-                                <button onClick={() => handleTone('neutral')} disabled={isRewriting}>
-                                  {isRewriting && rewriteAction === 'tone_neutral' ? 'Changing...' : 'Neutral'}
-                                </button>
-                              </li>
-                              <li>
-                                <button onClick={() => handleTone('educational')} disabled={isRewriting}>
-                                  {isRewriting && rewriteAction === 'tone_educational' ? 'Changing...' : 'Educational'}
-                                </button>
-                              </li>
-                            </ul>
-                          )}
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-                </div>
+                  <span className="icon-[tabler--wand] size-4" />
+                  Rewrite
+                </button>
             </div>
           </div>
         {idea && (
@@ -584,6 +490,19 @@ export default function IdeaContentPage() {
         )}
         </div>
       )}
+      <RewriteModal
+        open={isRewriteModalOpen}
+        onClose={() => setIsRewriteModalOpen(false)}
+        customPrompt={customPrompt}
+        setCustomPrompt={setCustomPrompt}
+        isRewriting={isRewriting}
+        rewriteAction={rewriteAction}
+        onCustomRewrite={handleCustomRewrite}
+        onShorten={handleShorten}
+        onExpand={handleExpand}
+        onFix={handleFix}
+        onTone={handleTone}
+      />
     </div>
   );
 }
